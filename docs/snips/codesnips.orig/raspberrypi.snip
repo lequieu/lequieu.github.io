@@ -1,0 +1,47 @@
+    
+    <p>
+    Page to organize little things I've learned on the Raspberry Pi
+    </p>
+     
+    <h2> Web Server </h2>
+    <ul> 
+        <li> Basic Installations
+          <code> aptitude install nginx </code>
+          <code> aptitude install php5 </code>
+          <code> aptitude install fail2ban </code>
+        <li> Php with nginx
+            <code> sudo service nginx start </code>
+            https://www.digitalocean.com/community/tutorials/how-to-install-linux-nginx-mysql-php-lemp-stack-on-debian-7
+            http://askubuntu.com/questions/134666/what-is-the-easiest-way-to-enable-php-on-nginx
+        <li> Setting User Permissions to modify /var/www
+            <code> sudo adduser <username> www-data
+            sudo chgrp -R www-data /usr/share/nginx/html
+            sudo chmod -R g+rw /usr/share/nginx/html
+            sudo chmod g+s /usr/share/nginx/html
+            </code>
+        <li> Get Groups that user belongs to.
+            <p> Look at </p>
+            <code> /etc/group
+            </code>
+
+
+    </ul>
+    <h2>Head-less internet </h2>
+    <ul>
+        <li> Configure Wifi with static IP
+            <p>http://weworkweplay.com/play/automatically-connect-a-raspberry-pi-to-a-wifi-network/
+             
+            Basically, configure /etc/network/interfaces to autoconnect to wifi and to use a static ip, the link above worked for me.
+    </ul>
+        
+
+    <h2> Maintenence </h2>
+    <ul>
+       <li> Measure Temperature
+            <code> /opt/vc/bin/vcgencmd measure_temp
+            </code>
+       <li> Check if process is running
+            <code> ps aux | grep MYPROCESSNAME </code>
+    
+    </ul>
+

@@ -1,0 +1,34 @@
+
+<ul>
+   <li> Vim Tips
+        <p> Go to <a href="http://vim.wikia.com/wiki/Best_Vim_Tips">Vim Tips</a>, regularly. I always learn something new.
+   <li> Find and replace
+         <code> # find and replace in entire document
+                :%s/tofind/toreplace/g 
+                # find and replace in lines matching pattern
+                :g/PATTERN/s/tofind/toreplace/g
+        </code>
+   <li> Yank lines containing pattern
+        <code> :g/PATTERN/yank A #yank into register
+                
+        </code>
+   <li> Spell Check
+        <ul>
+        <li> Turn on 
+          <code>:setlocal spell spelllang=en_us</code>
+        <li> Turn off 
+          <code>:set nospell </code>
+        <li> Offer suggestions
+          <code>z= </code> 
+        <li> next incorrect word
+          <code>]s </code> 
+        <li> previous incorrect word
+          <code>[s </code> 
+        <li>add word to dictionary (~/.vim/spell/en.utf-8.add)
+          <code>zg</code> 
+        <li> remove word from dictionary 
+          <code>zw</code> 
+        </ul>
+</ul>
+
+

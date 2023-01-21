@@ -1,0 +1,66 @@
+    <ul>
+     <li>Autocrop an image
+        <pre>$ convert image.jpg -trim -bordercolor White -border 20x10 +repage cropped_image.jpg</pre>
+        <a href="http://pebblesinthesand.wordpress.com/2012/01/05/autocrop-images-with-imagemagick/">Credit</a>
+     <li> Manually crop an image
+<pre> convert original.png -shave 100x100 crop.png #shave 100 pixels off of each edge
+</pre>
+<pre> convert original.png -shave 0x100 crop.png #shave 100 pixels off top and bottom edge
+</pre>
+     <li>Autocrop an eps image 
+        <pre>$ eps2eps image.eps cropped_image.eps #wow that was easy!</pre>
+        <pre>$ epstool --copy --bbox old.eps new.eps</pre>
+        <a href="http://sachinashanbhag.blogspot.com/2011/03/how-to-place-tight-bounding-box-around.html">Credit</a>
+     <li> eps to png (and back again) at high resolution
+        <div>
+        <ul>
+         <li> <a href="assets/codesnips/eps2png">eps2png</a> 
+         <li> <a href="assets/codesnips/png2eps">png2eps</a> 
+        </ul>
+        <a href="https://github.com/rkh/papers/blob/master/swt/pics/png2eps#L1">Credit</a> and Dan Hinckley
+        </div>
+     <li> Resize Image
+<pre> $ # resize while maintaining aspect ratio
+$ convert image.jpg -resize 500x image_500x.jpg
+</pre>
+     <li> Make Image Transparent
+<pre> $ convert image.png -transparent White newimage.png </pre>
+
+<li> Creating Animated .gif
+
+<pre> $ # delay = time per gif, loop = number of times to loop (0 = inf)
+$ convert -delay 20 -loop 0 *.png myimage.gif </pre>
+<li> Watermark Image
+<pre> $ composite -dissolve 15 -tile wmark.png image.jpg image_with_wmark.jpg
+$ composite -dissolve 15 -gravity south wmark.png image.jpg image_with_wmark.jpg
+</pre>
+
+     <li> Combine Images into Movie
+<pre> #assumes all the frames are jpg
+mencoder "mf://*.jpg" -mf fps=10 -o ./movie.avi -ovc lavc -lavcopts vcodec=msmpeg4v2:vbitrate=1800
+</pre>
+        <p> Snippets using avconv</p>
+<pre> # create movie from images
+avconv -framerate 25 -f image2 -i image-%03d.jpeg -b 65536k out.mov
+# create movie from images (high quality)
+avconv -framerate 25 -f image2 -i %04d.png -c:v h264 -crf 1 out.mov
+</pre>
+
+     <li> Extract Images from Movie
+<pre> $ avconv -i movie.mpg -q:v 2 -r 10 frme-%4d.jpg
+$ # also should work with ffmpeg
+$ # -q:v 2 sets quality (2 is best, 31 is worst)
+</pre>
+     <li> Trim edges from Image
+        <p> I love imagemagick but I've always been frustrated by cropping images using it. I had a tough time figuring out their geometry arguements. Anyways, heres how it works:</p>
+<pre> #this crops off horizontal edges
+# final image width is ${a} pixels, starting from pixes ${c} from left border
+a=300; c=160; convert tmp.jpg -crop "${a}x+${c}+0" tmp2.jpg
+#vertical crop
+b=300; d=160; convert tmp.jpg -crop "x${b}+0+${d}" tmp2.jpg
+</pre>
+        
+        
+    </ul>
+
+

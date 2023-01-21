@@ -1,0 +1,19 @@
+ 
+
+    <ul> 
+        <li> Install
+            Download <a href="http://sourceforge.net/projects/qmga/?source=typ_redirect">here</a>. Need to install qt3 which is no longer supported on ubuntu. To fix this, add the precise (Ubuntu 12.04) repositories. Add the following two lines to /etc/apt/sources.list 
+<pre> deb http://archive.ubuntu.com/ubuntu precise main restricted
+deb-src http://archive.ubuntu.com/ubuntu precise main restricted
+</pre>
+            Then issue:
+<pre> sudo aptitude install qt3-dev-tools
+sudo aptitude install freeglut3-dev
+</pre>
+            Then add to your make file:
+<pre> -I/usr/include/qt3
+-L/usr/share/qt3/lib
+</pre>
+
+    </ul>
+

@@ -1,0 +1,3 @@
+v4 is updated to build publication list from bibtex, and uses bootstrap (this version is still a work in progress)
+
+v3.1 contains an updated build system for codesnips using python

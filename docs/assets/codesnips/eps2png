@@ -1,0 +1,26 @@
+#!/bin/sh
+
+
+# Ghost script command to convert from an .eps file to a .png file.  
+
+if [ $# -ne 1 ]; then
+    echo "Correct usage: $0 < .eps or .pdf file name>"
+    exit 1
+fi
+
+PS_FILE=$1
+filename=$(basename "$PS_FILE")
+extension="${filename##*.}"
+filename="${filename%.*}"
+echo $filename, $extension, $filename
+
+if [ $extension = 'eps' ]; then
+  PNG_FILE=`echo $PS_FILE | sed 's/eps/png/'`
+elif [ $extension = 'pdf' ]; then
+  PNG_FILE=`echo $PS_FILE | sed 's/pdf/png/'`
+else
+  echo "ERROR: Invalid extension \' $extension \'"
+  exit
+fi
+
+gs -r600 -dEPSCrop -dTextAlphaBits=4 -sDEVICE=png16m -sOutputFile=$PNG_FILE -dBATCH -dNOPAUSE $PS_FILE

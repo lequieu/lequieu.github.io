@@ -1,0 +1,32 @@
+    <ul>
+        <li> 2-d array in continuous memory
+        <p> Occasionally one might want to allocate a 2d array in continuous memory. This can provide faster access, easier copying, or slicker commands with MPI.</p>
+<pre> int i,NX, NY;
+double **array2d;
+array2d = (double**) calloc(NX,sizeof(double*));
+array2d[0] = (double*) calloc(NX*NY,sizeof(double*));
+for(i=1;i &lt NX;i++){
+array2d[i] = &array2d[0][i*NY];
+}
+</pre>
+
+        <li> Random Numbers (C)
+        <p> A simple library I wrote to use random numbers in C code can be <a href="assets/codesnips/myrandom.h">downloaded here</a>. I find it annoying to use rand()/RAND_MAX. Of course, the simple usage of rand() could be replaced with a better pseudorandom number generator. Usage is as follows:
+        <pre>#include "stdio.h"
+              #include "stdlib.h"
+              #include "myrandom.h"
+
+              int main(int argc, char **argv){
+                  int i;
+                  double r;
+                  FILE *fptr;
+                  fptr=fopen("rand.dat","w");
+                  for(i=0; i<100000;i++){
+                      fprintf(fptr,"%f\n",myrandom_gauss(1));
+                  }   
+                  fclose(fptr);
+              }
+        </pre>
+    </ul>
+
+

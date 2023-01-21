@@ -1,0 +1,64 @@
+    Awk can be intimidating at first to use but is really powerful for quickly postprocessing and rearranging data. Whenever I show things like this to one of my labmates, he responds unimpressed, "I could just do that in python". True, but awk's compact syntax makes it ideal for quick-and-dirty datafile manipulation, all straight from the command line.
+    <ul>    
+      <li> Basic Syntax
+        <code> awk 'BEGIN{ print "Initialize"} {print x++, $1, $2, $3} END{print "Finalize"}' mydatafile > mynewfile
+        </code>
+      <li> Changing the element in the <strong>i</strong>th column and <strong>j</strong>th row 
+        <p>Frequently when running submitting a batch of simulations, its necessary to vary a certain value within an input file. This can certainly be done with sed but I've found the following script to be pretty handy.</p>
+        <code> $ $1=[input file]; $2=[row]; $3=[column]; $4=[new value] 
+               $ awk -v row=$2 -v col=$3 'FNR==1{} FNR==row{\$col="$4"}1' ./$1 > mytmp.dat; mv mytmp.dat $1
+        </code>
+        <p>Or use the attached shell script: <a href="assets/codesnips/change_element.sh">change_element.sh</a></p>
+
+      <li> Print certain columns 
+           <code> $ awk '{print $1, $2}' orig.dat > new.dat 
+           $ awk 'NR &lt 10{print $1, $2}' orig.dat > new.dat 
+           $ awk 'NR==5,NR==10{print $1, $2}' orig.dat > new.dat
+           </code>
+
+      <li> Print lines with more than 2 columns
+           <code> awk 'NF>1 {print $1,$2}' orig.dat > new.dat
+           </code>
+
+      <li> Count lines whose second column is greater than 1000
+           <code> awk 'BEGIN{i=0} {if ($2 &gt 1000) i++} END{print i}' data.dat
+           </code>
+
+      <li> Sum column in file
+            <code>awk 'BEGIN{ a=0}{a+=$2}END{print a}' mass_pro.psf</code>
+
+      <li> Take external variable
+            <code>awk -v r=$R 'NR==72{print r" "$3*2}' file </code>
+
+      <li> Print Every N lines of file
+           <p> Occasionally I have massive datasets that I need to downsample. A quick awk command does the trick:</p>
+           <code> awk '{if (NR % 100 == 0) print $1,$2,$3}' HILLS_0_99 &gt HILLS_0_99_DOWNSAMPLE
+           </code>
+           <p> Or if time is in first column, can print every N timesteps: </p>
+           <code> awk '{if ($1 % 10000 == 0) print $1,$2,$3}' HILLS_0_99 &gt HILLS_0_99_DOWNSAMPLE
+           </code>
+      <li> Flip rows and columns
+           <code>
+awk '
+{ 
+    for (i=1; i&lt=NF; i++)  {
+        a[NR,i] = $i
+    }
+}
+NF&gtp { p = NF }
+END {    
+    for(j=1; j&lt=p; j++) {
+        str=a[1,j]
+        for(i=2; i&lt=NR; i++){
+            str=str" "a[i,j];
+        }
+        print str
+    }
+}' file
+           </code>
+           <p>Or use the attached shell script: <a href="assets/codesnips/flip_rows_and_columns.sh">flip_rows_and_columns.sh</a></p>
+           <a href="http://stackoverflow.com/questions/1729824/transpose-a-file-in-bash">credit</a>
+        
+    </ul>    
+
+

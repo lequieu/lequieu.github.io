@@ -1,0 +1,48 @@
+
+<ul>
+   <li> Vim Tips
+        <p> Go to <a href="http://vim.wikia.com/wiki/Best_Vim_Tips">Vim Tips</a>, regularly. I always learn something new.
+   <li> Find and replace
+<pre> # find and replace in entire document
+:%s/tofind/toreplace/g
+# find and replace in lines matching pattern
+:g/PATTERN/s/tofind/toreplace/g
+</pre>
+   <li> Yank lines containing pattern
+<pre> :g/PATTERN/yank A #yank into register
+
+</pre>
+   <li> Spell Check
+        <ul>
+        <li> Turn on 
+          <pre>:setlocal spell spelllang=en_us</pre>
+        <li> Turn off 
+          <pre>:set nospell </pre>
+        <li> Offer suggestions
+          <pre>z= </pre> 
+        <li> next incorrect word
+          <pre>]s </pre> 
+        <li> previous incorrect word
+          <pre>[s </pre> 
+        <li>add word to dictionary (~/.vim/spell/en.utf-8.add)
+          <pre>zg</pre> 
+        <li> remove word from dictionary 
+          <pre>zw</pre> 
+        </ul>
+   <li> Automatically breaking lines at  lengths
+      <pre> gq{motion} % format the line that {motion} moves over
+            {Visual}gq % format the visually selected area
+            gqq        % format the current line
+      </pre>
+      Also setting textwidth (tw) will give you auto line break when exceeded during typing. It is used in gq too, though if disabled gq breaks on window size or 79 depending on which comes first.
+
+      <pre>:set tw=80</pre>
+
+      By setting format options to include text width vim will automatically break at the tw setting.
+
+      <pre> :set fo+=t</pre>
+
+        
+</ul>
+
+

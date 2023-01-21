@@ -1,0 +1,206 @@
+    <ul>
+        <li> Connect to internet via commandline
+            <p> Useful commands (will organize later) </p>
+            <code> ifconfig
+                   iwconfig
+                   iwlist scan
+                   dhclient eth0
+                   #connecting to wpa network
+                   wpa_passphrase myssid mypasskey
+                   wpa_supplicant -Bw -Dwext -i wlan0 -c/etc/wpa_supplicant.conf
+            </code>
+         <li> Cat-cam (or Security Cam) - motion
+         <li> Static IP Address
+            <p> Open /etc/network/interfaces and enter something like
+            <code> 
+              iface eth0 inet static
+                address 192.168.1.10
+                network 192.168.1.0
+                netmask 255.255.255.0
+                broadcast 192.168.1.255
+                gateway 192.168.1.254
+            </code>
+            <code>/etc/init.d/networking restart
+            </code>
+            <p> NOTE: on newer machines (first noticed in Debian Stretch), eth0 is no longer a valid interface. The new interface name can be found by: </p>
+            <code> ip link </code>
+
+         <li> Get External IP Address
+            <code>wget -qO- http://ipecho.net/plain ; echo</code>
+
+         <li> Fixing and Debugging sound
+            <code> arecord -d 3 /tmp/test-mic.wav
+                   aplay /tmp/test-mic.wav
+                   #allowed mic config
+                   alsamixer -c 0
+            </code>
+         <li> Hard drive check
+            <code>smartctl -a /dev/sdXXX| less </code>
+         <li> Make Live USB
+            <ol>
+                <li> Download .iso
+                <li> Insert USB and use fdisk -l to figure out where it is in /dev/
+                <li> <code>sudo dd if=/home/[PATH]/my.iso of=/dev/sdXXX
+                </code>
+            </ol>
+            
+         <li> Grub Rescue
+            Commands to look around  
+            <code> 
+            grub&gt set pager=1
+            grub&gt ls
+            grub&gt cat (hd0,1)/etc/issue
+            </code> 
+            Once you've found the linux partition you want to boot from (in this case hd0,1) then issue the following: 
+            <code> 
+            grub&gt set root=(hd0,1)
+            grub&gt linux /boot/vmlinuz-3.13.0-29-generic root=/dev/sda1
+            grub&gt initrd /boot/initrd.img-3.13.0-29-generic
+            grub&gt boot
+            </code>
+            The "root=/dev/sdaX" at the end of the second line is necessary. Don't omit it!
+
+            Once you've booted issue the following commands to make the changes permanent
+            <code>
+            # update-grub
+            # grub-install /dev/sda
+            </code>
+            
+            <a href="https://www.linux.com/learn/tutorials/776643-how-to-rescue-a-non-booting-grub-2-on-linux/">Source.</a>
+         <li> Fixing Boot Loader on Thinkpad (dual boot Windows, Linux)
+              <p>While installing linux I accidently made my system unbootable (whoops!). Here's how I fixed it: </p>
+              
+              <p>In order to boot linux, I downloaded <a href="http://www.supergrubdisk.org/super-grub2-disk/">super-grub2-disk</a> and booted it off of a usb. </p>
+              
+              
+              <p> Then I used the following tutorial to save me:
+              https://wiki.gentoo.org/wiki/GRUB2#Installing_the_boot_loader </p>
+              
+              First Figure out whether you have: BIOS with MBR, BIOS with GPT, or UEFI with GPT (this is what I had)
+              
+              In my case I had to
+              <ol>
+              <li> 1) Partition space on /dev/sda1 for the EFI partition
+              <li> 2) Create a file system for EFI partition
+              <code>mkdosfs -F 32 -n efi-boot /dev/sda1</code>
+              <li> 3)Create /boot/efi
+              <code>mkdir /boot/efi</code>
+              <li> 4) Get UUID of new partition and then Edit /etc/fstab to automatically mount /dev/sda1 to /boot/efi
+              sudo blkid
+              Add this to /etc/fstab
+              <code>UUID=CHANGEME   /boot/efi   vfat        noauto,noatime  1 2</code>
+
+              <li> 5) Mount it
+              <code>mount /boot/efi</code>
+
+              <li> 6) Install grub on this new partition
+              <code>grub-install --efi-directory=/boot/efi</code>
+
+              <li> 7) Restarted and Linux worked (Win10 still didn't though)
+              </ol>
+              To Fix the Windows boot I had to:
+              <ol>
+              <li> 1) Download a Windows 10 image and put it on a bootable USB
+              <li> 2) Boot off of the USB and try to issue the Windows boot recovery command (it failed)
+              <li> 3) Issue commands like:
+                <code>bootrec /RebuildBcd
+                bootrec /fixMbr
+                bootrec /fixboot
+                </code>
+                or
+                <code>bootsect /nt60 drive_letter: /mbr  
+                      bootsect /nt60 SYS
+                      bootsect /nt60 ALL
+                </code>
+                To get drive_letter I used command
+                <code> wmic logicaldisk get deviceid, volumename, description</code>
+
+                (I ended up using all of these commands at some point)
+              <li> 4) I reran the Windows automated boot recovery command (one of the commands in step 3 allowed it to run sucessfully)
+              <li> 5) I booted back into linux and ran
+                  <code>grub-install --efi-directory=/boot/efi</code>
+                 to default boot into grub. From here I could boot into both Windows10 and Linux. Whew!
+
+              </ol>
+        <li> Laptop Power Management (powertop, tlp)
+            Just install them, and change settings...
+
+        <li> Restore Graphics
+            Use "tasksel" to install the desktop environment. Once its installed issue the "startx" command.
+
+        <li> Single Directory Encryption (ecryptfs)
+            Install
+            <code> # aptitude install ecryptfs-utils  
+            </code>
+            Start daemon
+            <code> # modprobe ecryptfs
+            </code>
+            Setup Private (note, not root), choose password same as user login to mount automatically at login, in second option (key) let ecryptfs make one for you. 
+            <code> ecryptfs-setup-private
+            </code>
+            Supposedly its a good idea to print out the generated key and store it somewhere safe
+            <code> ecryptfs-unwrap-passphrase ~/.ecryptfs/wrapped-passphrase 
+            </code>
+
+            Now when you login, ecryptfs will mount ~/.private to ~/Private, anything stored in ~/Private will be encrypted. 
+
+            A good tutorial for doing this (or fancier stuff) can be found at <a href="https://wiki.archlinux.org/index.php/ECryptfs">https://wiki.archlinux.org/index.php/ECryptfs</a>.
+
+        <li> Check DNS Records
+            <code> dig example.com mx +short </code>
+
+        <li> Auto mount Hard drive
+            <p> First get UUID of the drive</p>
+            <code>  sudo blkid </code>
+            <p> Then setup fstab</p>
+            <code>  vi /etc/fstab </code>
+
+
+        <li> Fixing Ubuntu After Upgrade from 14.01 to 16.01
+            <ul>
+            <li> Upon booting recieved error: 
+              <code> VFS: Unable to mount root fs on unknown-block(0,0)</code>
+              To fix, used grub to boot into an older kernel (this worked), then did an apt-get update/upgrade. After looking around in grub command line, I noticed that /boot/initrd-* didn't exist and suspected that this could be the problem. To fix this, I did:
+              <code>
+                  #to find my latest kernel name
+                  dpkg --list | grep linux-image
+                  # install latest kernel image
+                  sudo update-initramfs -u -k 4.4.0-22-generic
+                  #update grub
+                  sudo update-grub
+              </code>
+              After rebooting, things worked with the new kernel
+
+            <li> Upon booting, left me at the command line, and issuing "startx" gave errors. I tried "tasksel" to install the desktop, and...things still worked. I tried apt-get upgrade but got a conflict I couldnt resolve. "dpkg --configure -a" also failed due to too many errors. Not sure how to proceed...
+
+            </ul>
+                
+        <li> Revert to previous packages
+            <p> I tend to run debian testing and occasionally a new package will break my system or a progam I use frequently. In these cases it's nice to have a way to 'restore' the previous state of the machine. Luckily, there's a tool to do this: snapshot.debian.org. </p>
+            <p> If you only want to revert a single package, you can search that package and download the .deb file that you want and manually "dpkg -i" it. Otherwise you can update your mirrors as follows: </p>
+
+            <ul> 
+            <li> First, make a new file: /etc/apt/sources.list.d/snapshot-debian.list and populate it with the following contents
+            
+                <code>  deb     http://snapshot.debian.org/archive/debian/20160801/ stretch main
+                        deb-src http://snapshot.debian.org/archive/debian/20160801/ stretch main
+                        deb     http://snapshot.debian.org/archive/debian-security/20160801/ stretch/updates main
+                        deb-src http://snapshot.debian.org/archive/debian-security/20160801/ stretch/updates main
+                </code>
+                The last number is the date of the snapshot you would like to revert to in YYYYMMDD format.
+            <li> Then comment out the usual mirrors in /etc/apt/sources.list
+            <li> Issue aptitude update with the following commands to allow the use of an outdated mirror
+              <code> aptitude -o Acquire::Check-Valid-Until=false update </code>
+            <li> aptitude remove and then aptitude install the packages that you want to revert, or perform aptitude update to revert entire system
+            <li> Toggle between the mirrors accordingly to access the packages you want to be accessing
+
+            </ul>
+
+        <li> Change system time
+            <code> timedatectl list-timezones
+                   timedatectl set-timezone America/Chicago
+            </code>
+
+
+    </ul>
+

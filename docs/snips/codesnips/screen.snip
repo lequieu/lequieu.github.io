@@ -1,0 +1,49 @@
+    <p> Screen is an incredibly useful tool for working at the command line. Before I used to have many terminal windows (and tabs) open simultaneously, each for a different task I was performing. Thanks to screen, I only have one that keeps track of all of my work. As an added bonus, when I'm accessing my machine from home, I just reattach 
+
+    <ul>
+       <li> Basics
+<pre> screen # open screen
+screen --list # list open screens
+screen -r [screen name] # reattach a detached screen
+screen -dr [screen name] # remotely detach an atatched screen and reattach to it
+</pre>
+       <li> Usage
+        Type ctrl-a [command]. My most frequently used commands are:
+                 <pre>A - rename screen name 
+                       " - view all screens 
+                       n - next screen      
+                       p - previous screen 
+                       c - new screen 
+                       ctrl-a - switch to previous screen
+                       S - split current region horizontally
+                       | - split current region verticaly
+                       tab - shift focus to next region (used with 'S')
+                       X - delete current region
+                       Q - delete all regions but current one
+                 </pre> 
+        <li> Cut and Paste between different screens
+<pre>
+ctrl-a [ # start copy mode
+[space] # sets first mark
+[j,k,h,l or other vi-like navigation] # highlight text
+[space] # set second mark, text between 1st and 2nd mark is coppied
+# navigate to desired paste location
+ctrl-a ] # paste
+</pre>
+       <li> Screen within a Screen 
+            <p> The hotkey to access the outer screen is <pre>ctrl-a [outer screen command]</pre>, to access a screen within a screen type <pre>ctrl-a a [inner screen command]</pre>. The [commands] are found in the screen documentation.</p>
+       <li> Broken Colors when ssh'ing
+           <p> On local system </p>
+           <pre>infocmp xterm-256color &gt xterm-256color.ti
+                 infocmp screen.xterm-256color &gt screen.xterm-256color.ti
+           </pre>
+           <p> Copy files to remote host, then on remote host  </p>
+<pre> tic xterm-256color.ti
+tic screen.xterm-256color.ti
+</pre>
+           <p> I also had to alias ls in .bashrc </p>
+<pre> alias ls='ls --color=auto' </pre>
+
+</ul>
+
+

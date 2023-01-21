@@ -1,0 +1,30 @@
+    <ul>
+        <li> Driver install (ubuntu)
+        <p> To avoid those all-to-often times that I break my machine while installing graphics drivers, here are some tips from Julio, a postdoc in the group. Following them, I was able to get cuda working on my machine in the first shot...I didn't even know that was possible.
+        <ul>
+            <li> Never upgrade Nvidia drivers! First remove them, switch back to nouveau (using Driver Management tool, or command line) then do a fresh install of your desired new driver. Failure to do this is frequently what breaks a system. Restart then remove all nvidia drivers using:
+                 <code> sudo apt-get remove --purge nvidia*
+                 </code>
+            <li> On first attempt try using Ubuntu's native Driver Management tool, install the newest version. If you need cuda, go to the the Nvidia website and download the latest toolkit, being sure to remove the old install before performing a new one.
+            <li> To check if the install went okay open nvidia-settings and check the "OpenGL/GLX Information" tab. If the info in the "GLX Extensions" area is populated, the driver is likely working correctly. If there was an error with the install, then it might cause a crash here.
+        </ul>
+        </p>
+        <li> Driver install (Debian testing)
+
+        <code> aptitude search nvidia
+               aptitude search libnvidia
+        </code>
+        Make sure nothing is installed, if so, remove it
+
+        <code> aptitude install nvidia-detect</code>
+        Run nvidia-detect to check if compatable graphics card
+
+        <code> aptitude install nvidia-driver</code>
+        Reboot after install (and cross fingers)
+        
+        Now to get cuda (necessary to enable GPU compute device in blender)
+        <code> aptitude install nvidia-cuda-toolkit</code>
+
+    </ul>
+
+

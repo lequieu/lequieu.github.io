@@ -1,0 +1,303 @@
+    
+    <ul>
+      <li> "For" Loops
+            <code> > plot for [i in 0:100:10] sprintf('./file_%02d',i) u 1:2 ti sprintf('%d',i) 
+                   > plot for [i in "hot warm cold"] sprintf('./%s/file_00',i) u 1:2 ti sprintf('%s',i) 
+                   plot for [i=0:10] 'file_'.i.'.dat ti ''.i
+                   plot for [i=0:10] for [j=0:5] 'file_'.i.'.'.j.'.dat ti ''.i.' '.j
+            </code>
+      <li> Generating Histograms
+           <code> > binwidth=0.1; bin(x,width) = width*floor(x/width) 
+                  > p 'myfile' u (bin($2,binwidth)):(1.0) smooth freq w l
+           </code>
+
+      <li> Calculating Derivatives
+        <code> > d2(x,y) = ($0 == 0) ? (x1 = x, y1 = y, 1/0) : (x2 = x1, x1 = x, y2 = y1, y1 = y, (y1-y2)/(x1-x2)) 
+               > p 'myfile' u 1:(d2($1,$2))
+        </code>
+        <a href="http://stackoverflow.com/questions/15751226/how-can-i-plot-the-derivative-of-a-graph-in-gnuplot">Credit</a>
+      <li> Curve-fitting
+          <code>> FIT_LIMIT=1.e-5        #optional, tolerance value
+                > f1(x) = a1*tanh(x/b1)  # define the function to be fit
+                > a1 = 300; b1 = 0.005;  # initial guess for a1 and b1
+                > fit f1(x) 'force.dat' using 1:2 via a1, b1
+                > plot f1(x), 'force.dat' u 1:2
+          </code>
+
+          <a href="http://people.duke.edu/~hpgavin/gnuplot.html">Credit</a><br>
+
+          If you want to save the fit parameters to a file.
+          <code>> set print "params.dat"
+                > print a1; print b1    # different line
+                > print a1,' ',b1       # same line
+          </code>
+
+      <li> Curve-fitting (in log space)
+        <p> If you naively fit a curve in log-log space, you'll end up unequally weighting the large y values more than the small ones (since they contribute more to the SSR). To do this right, the fit must be performed in log space.</p>
+        <code> # power law
+              fit a*x+b './msd_log.dat' u (log10($1)):(log10($2)) via a,b
+              set log xy
+              p './msd_log.dat' u 1:2, (10**b)*x**a
+        </code>
+
+        <p> Also, dont forget that you should also resample your data so that its evenly distributed in log space. Otherwise, you wont calculate the correct fit because the SSR is skewed by the uneven point distribution <\p>
+
+      <li> Taking command line args - nest withing bash
+            
+<code class="codeblock">#!/bin/bash
+if [ $# -ne 1 ]; then
+    echo "Usage: $0 &lt file to plot &gt"
+    exit
+fi
+FILE=$1
+
+gnuplot << EOF 
+set terminal postscript enhanced eps color "Arial" 24
+set output 'fig_$FILE.eps' # use FILE variable defined above
+plot '$FILE'u 1:(\$2 + 10) # note escaped '$'
+EOF
+</code>
+
+     <li> Multiple y-axis
+        <code> > set y2tics; set ytics nomirror
+               > p 'data1.dat' u 1:2 axis x1y1, 'data2.dat' u 1:2 axis x1y2
+        </code>
+     <li> Special characters (in eps terminal)
+        <code> > set terminal postscript enhanced eps color "Arial" 24
+               > set xlabel '{/Symbol w}'
+               > set ylabel 'G{/Symbol \242}, G{/Symbol \242\242} (atm)'
+               > # or set ylabel 'G{/Text \302} (atm)'
+        </code>
+        <code> set encoding iso_8859_1
+               set xlabel 'Separation {\305}' #angstroms
+        </code>
+
+        A list of symbols that you can use can be found in <a href="./assets/codesnips/ps_guide.pdf">this</a> pdf. Credit is not mine.
+    
+    <li> Getting Parameters from external file (use `...` as in bash)
+        <code> m = `cat myparams.dat | cut -f 1 -d ' '`
+               b = `cat myparams.dat | cut -f 2 -d ' '`
+               plot m*x + b
+        </code>
+    <li> Plotting 4-d curve
+        <code> > set pm3d implicit as s
+               > splot './myfile.dat' u 1:2:3:4 w pm3d
+        </code>
+    <li> Loading color maps
+        <p> Gnuplot is great, but some of its default color schemes are ugly. Load up a color map and quickly change the feel of your plots. You can find many examples on the <a href="https://github.com/Gnuplotting/gnuplot-palettes">gnuplot-palettes repositore on github</a>. </p>
+        <code> > set loadpath '~/gp_config/
+               > load 'parula.pal'
+         </code>
+         <p> Sometimes I just want the colors so I can set line color manually. The colors from spectral.pal are here.
+         <code> myred='#D53E4F'
+                myorange='#F46D43'
+                mygreen='#66C2A5'
+                myblue='#3288BD'
+                myblack='#000000'
+                mywhite='#FFFFFF'
+                p 'data.dat' w l lc rgb myblue
+         </code>
+
+    <li> Bar Graph
+        <code> # single bar graph
+               set boxwidth 0.5
+               set style fill solid
+               plot "data.dat" using 1:3:xtic(2) with boxes
+
+               #multiple bars
+               set style data histogram
+               set style histogram cluster gap 1
+               set style fill solid border rgb "black"
+               p 'file' u 2:xtic(1) ti '' ls 11,\
+                 'file' u 3:xtic(1) ti '' ls 12
+
+         </code>
+    <li> Multiple Bar Graph with Error Bars
+        <code>set xrange [-0.5:12.75]
+              set xtic rotate by -45
+              set boxwidth 0.25
+              plot 'file.dat' using ($0-.05):4:5:xtic(1) with boxerrorbars title col, \\
+                   '' using ($0+0.25):2:3 with boxerrorbars title col
+        </code>
+
+    <li> Plotting from stdin
+        <p> tail, head or any other shell command can be used to dynamically preprocess the data before it is plotted </p>
+        <code> plot '&lt tail -n 100 file2plot.dat' u 1:2
+               plot '&lt head -n 100 file2plot.dat' u 1:2
+        </code>
+
+    <li> Exponential axis labels (e.g. for log scale plots)
+        <code>  set logscale x
+                set format x "10^{%L}" 
+                # or set xtics format "10^{%L}"
+
+                # Also, if you want more precision, use %t or %T
+                set format x "%0.1t{/Symbol \264}10^{%L}"
+                set format x "%0.1t {\267}10^{%L}" 
+
+                #or if you just want to use %t,%T or %l in general
+                # use gprintf then sprintf
+                base = gprintf('%0.1t',D)
+                exp = gprintf('%T',D)
+                set label at 100,0.10 sprintf('D = %s{/Symbol \264}10^%s ',base,exp) 
+
+        </code>
+    <li> Plot a matrix (no interpolation)
+        <code>
+          p './dist.dat' matrix with image
+        </code>
+    <li> Color line with splot
+        <p> To plot a line on splot whose color varies based on a third value in the data file use the following. More info <a href="http://www.gnuplotting.org/using-a-palette-as-line-color/">here</a>. </p>
+        <code> # the following sets the pallete
+               # start value for H
+               h1 = 117/360.0
+               # end value for H
+               h2 = 227/360.0
+               # creating the palette by specifying H,S,V
+               set palette model HSV functions (1-gray)*(h2-h1)+h1,1,0.68
+
+               # this plots (defining the above palette isn't actually necessary)
+               splot [-pi:pi][-1.5:1.5] './0_0/output/HILLS_00' u 2:3:1 w l lc palette
+        </code>
+     <li> Quickly define a pallete
+        <code> set palette model RGB
+               set palette file "-"
+               1 0 0
+               1 1 0
+               0 1 0
+               0 0 1
+               e
+        </code>
+     <li> Write values to file
+         <p> If gnuplot has been used to calculate some parameters (i.e. average, fit, etc), that parameter can be written to a file as follows /<p>
+         <code> set print "myfile.dat"
+                print v1,' ',v2,' ',v3
+         </code>
+     <li> Collapse X-axis of multiplot
+         <p> If you want to stack multiple plots on the same figure that have the same x-axis define some 'macros' to make the code clearer. <a href="http://www.gnuplotting.org/multiplot-placing-graphs-next-to-each-other/">Gnuplotting.org</a> contains a useful article on this.</p>
+         <code> # this example is for 4 plots
+         # Enable the use of macros
+         set macros
+        
+         NOXTICS = "set xtics ('' 0, '' 100,'' 200, '' 300, '' 400, '' 500); unset xlabel"
+         XTICS = "set xtics ('0' 0, '100' 100,'200' 200, '300' 300, '400' 400, '500' 500); set xlabel 'r ({\305})'"
+
+         # Margins for each row resp. column
+         TMARGIN = "set tmargin at screen 0.90; set bmargin at screen 0.666"
+         MMARGIN = "set tmargin at screen 0.666; set bmargin at screen 0.433"
+         BMARGIN = "set tmargin at screen 0.433; set bmargin at screen 0.20"
+
+         set multiplot layout 3,1
+         @NOXTICS; @TMARGIN
+         p '1.dat'
+         @NOXTICS; @MMARGIN
+         p '2.dat'
+         @XTICS; @BMARGIN
+         p '3.dat'
+         </code>
+
+         <code> # this example is for 2 plots
+         set macros
+         NOXTICS = "set xtics ('' 0, '' 100,'' 200, '' 300, '' 400, '' 500); unset xlabel"
+         XTICS = "set xtics ('0' 0, '100' 100,'200' 200, '300' 300, '400' 400, '500' 500); set xlabel 'r ({\305})'"
+         TMARGIN = "set tmargin at screen 0.90; set bmargin at screen 0.55"
+         BMARGIN = "set tmargin at screen 0.55; set bmargin at screen 0.20"
+         @NOXTICS; @TMARGIN
+         p '1.dat'
+         @XTICS; @BMARGIN
+         p '2.dat'
+         </code>
+
+         <p> This is a smoother way to do it </p>
+         <code>
+         set macros
+         set yrange [0:90]
+         NOYTICS = "set ytics ('' 0, '' 10, '' 20, '' 30, '' 40 , '' 50, '' 60, '' 70, '' 80, '' 90); unset ylabel"
+         YTICS = "set ytics 10; unset ylabel"
+
+         hmarginmin = 0.20
+         hmarginmax = 0.9 
+         numhplot = 3 
+         dh = (hmarginmax - hmarginmin) / numhplot
+
+         SETMARGINS="lo= hmarginmin + (hindex-1)*dh; hi=lo+dh; set lmargin at screen lo; set rmargin at screen hi"
+
+         hindex = 1 
+         @SETMARGINS
+         @YTICS
+         p  '1pN/freefile.wham' u 1:($2/kT) ti '2pN'  w l ls 11 lw 5 
+
+         hindex = 2 
+         @SETMARGINS
+         @NOYTICS
+         p  '7pN/freefile.wham' u 1:($2/kT) ti '6pN'  w l ls 13 lw 5
+
+         hindex = 3 
+         @SETMARGINS
+         @NOYTICS
+         p '5pN/freefile.wham' u 1:($2/kT) ti '10pN' w l ls 15 lw 5
+         </code>
+
+     <li> Draw vertical line
+        <code>    p  '&ltecho "10 100"' w impulse </code>
+
+     <li> Shaded Errorbars
+        <code> set style fill solid 0.3
+               p  'data.dat' u 1:2 w l,\
+                 '' u 1:2:($2+$3) w filledcu,\
+                 '' u 1:2:($2-$3) w filledcu
+        </code>
+     <li> Fitting multiple functions simultaneously
+    
+    helpful discussion: http://gnuplot.10905.n7.nabble.com/fit-multi-branch-simultaneous-fits-of-2-data-sets-td1481.html 
+    [begin quote]
+    For simplicity, suppose I had two data sets, both governed by a simple
+    exponential decay with the same time constant but different initial values,
+    i.e., z = a*exp(-t/T) for the first data set and z = b*exp(-t/T) for the second,
+    and I want to fit the decay for both data sets with a common parameter T.
+
+    In help fit multi-branch of gnuplot, it says
+    "The function and parameters (branch) for each data set are selected by using a
+    'pseudo-variable', e.g., either the dataline number (a 'column' index of -1) or
+    the datafile index (-2), as the second independent variable." and in the example
+    it gives
+          f(x,y) = (y==0) ? a*exp(-x/tau) : b*exp(-x/tau)
+          fit f(x,y) 'datafile' using  1:-2:2:3  via a, b, tau
+
+    Could anybody help me with the following?
+    1. How is f(x,y) switched between a*exp(-x/tau) and b*exp(-x/tau) in the fitting
+    procedure? Specifically, when the fitting program read a line in the data file,
+    it sees x:z (first column independent and second column dependent). How does the
+    program decide which function to use? Since there is no 'y' involved.
+    [end quote]
+
+	sure there is a 'y' involved: it's the 2nd argument of the 'using' specifier.
+
+	in detail:
+	using  1:-2:2:3
+	means:
+	the x-value is read from column 1
+	the y-value is the current index (=data block) number
+	the z-value is read from column 2
+	the s-value is read from column 3
+
+	so, if your two data sets are in one file - separated by two empty lines
+	- then the 1st data set will have the index number '0' and the 2nd index '1'.
+	this index is given to the function as y-value which switches between the
+	two functions.
+
+	[begin quote]
+	2. Could anybody give me an example of function and parameters selection using
+	the dataline number (a 'column' index of -1)?
+	[end quote]
+
+	f(x,y) = (y<1000) ? a*exp(-x/tau) : b*exp(-x/tau)
+	fit f(x,y) 'datafile' using  1:-1:2:3  via a, b, tau
+
+	the 1st 1000 data sets (=lines) are fitted using the 1st function,
+	the remaining data sets are fitted using the 2nd function.
+ 
+
+
+    </ul>
+ 

@@ -1,0 +1,58 @@
+ 
+     
+    <ul> 
+        <li> Numpy Usage
+            <code> import numpy as np
+                   a=np.array([[1,2,3,4],[10,9,8,7]]).T
+                   b=np.array([[1,2,3,4],[20,19,18,17]]).T
+                   #subtract 2nd column of a from b
+                   c=np.array([a[:,0],b[:,1]-a[:,1]])
+            </code>
+        <li> Minimum and Index
+          <code> val, idx = min((val, idx) for (idx, val) in enumerate(my_list)) 
+          </code>
+        <li> Replace in array (works for 2d array too)
+          <code> a[a==0] = 0.01 </code>
+        <li> Find values in array greater than some value
+          <code>  arr = np.array([1, 5, 6, 7, 7, 8, 8, 0, 2, 7])
+                  np.where(arr &gt 0)
+                  arr[np.where(arr &gt 0)]
+          </code>
+        <li> File Parsing
+            <code>
+            #lines in file
+            nlines = sum(1 for line in open("file.txt"))
+            </code>
+        <li> Argparse
+        
+        <li> In-line for loop (what is this called?)
+            <code> [x for x in range(10)] 
+                   y = [int(x) for x in np.linspace(0,100,20)] 
+            </code>
+
+        <li> Iterating over dictionaries
+            <p> Python 2</p>
+            <code>for key, value in d.iteritems():</code>
+            <p> Python 3</p>
+            <code>for key, value in d.items():</code>
+
+        <li> Automatically import modules into ipython or python interactive environment
+            <p>Place a .py or .ipy file in the "~/.ipython/profile_default/startup" directory and it will automatically be executed. </p>
+
+        <li> ipython execute shell
+            <p> Just use "!" or "%sc"</p>
+              <code>! echo "Hello world!"</code>
+              <code>%sc echo "Hello world!"</code>
+            <p> Or use "!!" or "%sx" to return args as python list</p>
+
+        <li> Fixing errors when piping to head (i.e. python ./myscript.py | head)
+             <p> When running this command the following error was generated</p>
+             <code> IOError: [Errno 32] Broken pipe </code>
+             <p> To fix, add the following code to the script </p>
+             <code> from signal import signal, SIGPIPE, SIG_DFL
+                   signal(SIGPIPE,SIG_DFL) 
+             </code>
+             An explanation of why this works is found here: <a href="https://newbebweb.blogspot.com/2012/02/python-head-ioerror-errno-32-broken.html">Reference</a>
+        
+    </ul>
+   

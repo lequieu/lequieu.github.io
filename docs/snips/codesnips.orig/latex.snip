@@ -1,0 +1,89 @@
+    <ul>
+       <li> Finding Latex Symbols
+            <p>Use <a href="http://detexify.kirelabs.org/classify.html">DETEXIFY</a>, and never go back to googling "latex math squiggle" again. </p>
+       <li> Adding new packages
+            <p> Put them in "~/texmf/" (for user) or "/usr/local/share/texmf" (for all users), then execute </p>
+            <code> 
+                  texhash ~/texmf 
+                  texhash /usr/local/share/texmf
+            </code>
+            <p> I've found that APS's Revtex package has issues finding the correct bibtex file "aipnum4-1.bst". To fix this, install package "texlive-full", its huge, but things work afterwards...</p>
+
+       <li> Supplemental Figure Numbering (i.e. Fig. S1)
+               <code>\renewcommand{\thefigure}{S\arabic{figure}}
+               </code>
+       <li> Citing SI from Maintext of paper (and vice-versa)
+               <p> in manuscript.tex </p>
+               <code>\usepackage{xcite}
+                     \usepackage{xr}
+                     \externaldocument{si}
+               </code>
+               <p> in si.tex </p>
+               <code>\usepackage{xcite}
+                     \usepackage{xr}
+                     \externaldocument{manuscript}
+               </code>
+               <p> Just use \ref{} and \cite{} as usual and everything should just work </p>
+
+       <li> New Packages (or Themes)
+            <code> kpsexpand \$TEXMFLOCAL
+                   kpsexpand \$TEXMFHOME
+            </code>
+       <li> Ignore latex things with aspell
+            <code>aspell --dont-tex-check-comments --add-tex-command="citep op" --add-tex-command="citet op" -c proposal.tex</code>
+        <li> Making section formatting compact and pretty (also used in a proposal)
+            <code>
+                \usepackage[compact]{titlesec}
+              %correct section numbering
+              \renewcommand\thesection{\arabic{section}}
+              \renewcommand\thesubsection{\thesection.\arabic{subsection}}
+              \renewcommand\thesubsubsection{\thesubsection.\arabic{subsubsection}}
+              % and display when sections are referenced
+              \makeatletter
+              \def\p@subsection{}
+              \def\p@subsubsection{}
+              \makeatother
+
+              %format section format 
+              \titleformat{\section}{\normalfont\bfseries\scshape}{\thesection.}{1ex}{}
+              \titleformat{\subsection}[runin]{\normalfont\bfseries}{\thesubsection.}{1ex}{}[.]
+              \titleformat{\subsubsection}[runin]{\normalfont\bfseries}{\thesubsubsection.}{1ex}{}[.]
+              </code>
+        <li> Space saving (i.e. for a proposal)
+            <code>
+                \usepackage[compact]{titlesec}
+                % squeeze the vertical space
+                \setlength{\parskip}{0pt}
+                \setlength{\parsep}{0pt}
+                \setlength{\headsep}{0pt}
+                %\setlength{\topskip}{0pt} % this makes the document 1000's of pages long
+                \setlength{\topmargin}{0pt}
+                \setlength{\topsep}{0pt}
+                \setlength{\partopsep}{0pt}
+                \linespread{1.0}
+
+                % reduce white space around figures
+                \addtolength{\intextsep}{-1eM} %squeeze text around floats
+                \addtolength{\abovecaptionskip}{-1eM} %squeeze text around figure captions
+                \addtolength{\belowcaptionskip}{-0.2eM} %squeeze text around figure caption
+            </code>
+        <li> Removing Type 3 Fonts 
+            <p> I was once submitting to a journal whose latex compiler complained about type 3 fonts in my manuscript.pdf file. Heres how I fixed it: </p>
+            <ul> 
+                <li> Convert all images to .pdf files
+                <li> Loop over all images and manuscript "pdffonts image1.pdf" to check for Type 3 fonts
+                <li> Eliminate Type 3 fonts from the files (I had success using inkscape, I just had to change the font of a special greek symbol I was using)
+            </ul>
+        <li> Necessary Texlive Install
+            <p> This gets everything I regularly use, without texlive-full which is WAY too much</p>
+            <code> aptitude install texlive-latex-extra texlive-publishers texlive-science
+            </code>
+        <li> Automatically center figures
+            <p> I dont know how it works, but it does!</p>
+            <code>\makeatletter
+                  \g@addto@macro\@floatboxreset\centering
+                  \makeatother
+            </code>
+
+    </ul>
+

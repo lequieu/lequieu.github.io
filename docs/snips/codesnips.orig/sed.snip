@@ -1,0 +1,14 @@
+    <ul>
+        <li> Sed Tutorial
+        <p> If you plan on working at the command line for any period of time, invest an afternoon and go through <a href="http://www.grymoire.com/Unix/Sed.html">this sed tutorial by Bruce Barnett</a>. You'll be glad you did and will easily recoop all the time you spent learning sed by the more powerful scripts you'll be able to write. </p>
+
+        <li> Sed with Bash substitutions
+        <p> It can be difficult to correctly escape characters and manage quotes for sed commands with bash variables. Just storing the sed command as a string can avoid many headaches. </p>
+        <code> cmd="sed 's/OLD/$new/g' <oldfile >newfile"
+               echo $cmd
+               eval $cmd
+        </code>
+      <li> <strong> Add something on \1 replacements </strong>
+    </ul>
+
+

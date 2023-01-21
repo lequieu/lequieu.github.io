@@ -1,0 +1,12 @@
+    <ul>
+       <li> Debugging with gdb
+       <code> mpirun -np 4 xterm -e gdb code.exe </code>
+       <li> Precise control of processors (e.g. writing a Job Wrapper)
+         <code> mpirun --app my_appfile </code>
+         Inside of my_appfile
+         <code> -np 2 ./a.out
+                -np 2 ./b.out
+         </code>
+     </ul>
+
+

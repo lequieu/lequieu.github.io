@@ -1,0 +1,13 @@
+    
+    <ul>
+        <li> Structured Grid
+        <p> I had one heck of a time getting my file format to be compatable. Some notes: 
+        <\p>
+            <ul>
+                <li> When defining the grid, vary x values first, then y, then z (i.e. line one is 1.0 1.0 1.0, line two is 2.0 1.0 1.0, etc)
+                <li> Use spaces, not tabs. For some reason, with tabs in the first few lines, the file wouldn't read properly. Changing these to spaces fixed things...sigh.
+                <li> Make sure there aren't any impropper numbers in the file (infinity, nan, very big numbers, etc). This can break the parsing of the file.
+            </ul>
+
+    </ul>
+

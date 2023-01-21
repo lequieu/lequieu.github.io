@@ -1,0 +1,58 @@
+ 
+     
+    <ul> 
+        <li> Numpy Usage
+<pre> import numpy as np
+a=np.array([[1,2,3,4],[10,9,8,7]]).T
+b=np.array([[1,2,3,4],[20,19,18,17]]).T
+#subtract 2nd column of a from b
+c=np.array([a[:,0],b[:,1]-a[:,1]])
+</pre>
+        <li> Minimum and Index
+<pre> val, idx = min((val, idx) for (idx, val) in enumerate(my_list))
+</pre>
+        <li> Replace in array (works for 2d array too)
+<pre> a[a==0] = 0.01 </pre>
+<li> Find values in array greater than some value
+<pre> arr = np.array([1, 5, 6, 7, 7, 8, 8, 0, 2, 7])
+np.where(arr &gt 0)
+arr[np.where(arr &gt 0)]
+</pre>
+        <li> File Parsing
+<pre>
+#lines in file
+nlines = sum(1 for line in open("file.txt"))
+</pre>
+        <li> Argparse
+        
+        <li> In-line for loop (what is this called?)
+<pre> [x for x in range(10)]
+y = [int(x) for x in np.linspace(0,100,20)]
+</pre>
+
+        <li> Iterating over dictionaries
+            <p> Python 2</p>
+            <pre>for key, value in d.iteritems():</pre>
+            <p> Python 3</p>
+            <pre>for key, value in d.items():</pre>
+
+        <li> Automatically import modules into ipython or python interactive environment
+            <p>Place a .py or .ipy file in the "~/.ipython/profile_default/startup" directory and it will automatically be executed. </p>
+
+        <li> ipython execute shell
+            <p> Just use "!" or "%sc"</p>
+              <pre>! echo "Hello world!"</pre>
+              <pre>%sc echo "Hello world!"</pre>
+            <p> Or use "!!" or "%sx" to return args as python list</p>
+
+        <li> Fixing errors when piping to head (i.e. python ./myscript.py | head)
+             <p> When running this command the following error was generated</p>
+<pre> IOError: [Errno 32] Broken pipe </pre>
+<p> To fix, add the following code to the script </p>
+<pre> from signal import signal, SIGPIPE, SIG_DFL
+signal(SIGPIPE,SIG_DFL)
+</pre>
+             An explanation of why this works is found here: <a href="https://newbebweb.blogspot.com/2012/02/python-head-ioerror-errno-32-broken.html">Reference</a>
+        
+    </ul>
+   

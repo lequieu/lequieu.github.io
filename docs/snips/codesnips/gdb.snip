@@ -1,0 +1,20 @@
+    <ul> 
+        <li> Conditional Breakpoint
+<pre> b test.cpp:199
+cond 1 denom == 0
+</pre>
+        <li> Execute Commands (ie printing) at breakpoint
+<pre> command N
+print i
+print j
+end
+</pre>
+            where N is the breakpoint number you want to issue commands at.
+
+        <li> Print Elements of a C++ vector
+            <p> Print entire vector </p>
+            <pre>print *(myVector._M_impl._M_start)@myVector.size()</pre>
+            <p> Print N entries of vector </p>
+            <pre>print *(myVector._M_impl._M_start)@N</pre>
+    </ul>
+

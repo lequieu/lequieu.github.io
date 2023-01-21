@@ -1,0 +1,56 @@
+    <h2> Mail </h2>
+    <ul>
+       <li> Standard syntax 
+<pre> mail -A myattachment.png emailrecipient@domain.com -s "subject" <<< "email content"
+</pre>
+     </ul>
+
+    <h2> Record From Audio Card </h2>
+
+    <ul>
+        <li>  Using Pulseaudio 
+          <pre>pacmd list | grep ".monitor"</pre>
+          Look for the line that looks like:
+<pre> name: alsa_output.0.analog-stereo.monitor </pre>
+Now take this name and issue the following command:
+<pre> pacat --record -d alsa_output.0.analog-stereo.monitor | sox -t raw -r 44100 -s -L -b 16 -c 2 - "output.wav" </pre>
+This will record until you escape it with CTL-C. You can convert it to a smaller file using
+<pre> lame -h output.wav output.mp3 </pre>
+You can convert to a compressed format straight out of sox too...
+<li> Using Also
+<p> I never got this to work correctly, I started by following <a href="https://carthick.wordpress.com/2007/11/26/linux-recording-soundcard-output-using-arecord/">this website</a>, but couldn't get it to work. I did add the following command to ".asoundrc", in the off chance that this helped out the Pulseaudio option.
+<pre>
+pcm.copy {
+type plug
+slave {
+pcm hw
+}
+route_policy copy
+}
+</pre>
+
+    </ul>
+
+    <h2> Pdf Manipulation (pdftk) </h2>
+    <ul>
+       <li> Combine many pdf in to single pdf
+<pre> pdftk file1.pdf file2.pdf file3.pdf cat output newfile.pdf
+</pre>
+     </ul>
+
+    <h2> Miscelaneous </h2>
+    <ul>
+       <li> Removing Null Characters (^@) from file
+           <p>Occasionally, these fellows find their way into a text file and are difficult to remove with sed. This does the trick.</p>
+           <pre>tr < file-with-nulls -d '\000' > file-without-nulls
+           </pre>
+       <li> Messaging other users on a server (using "write")
+<pre> write &ltusername&gt </pre>
+Hit enter
+<pre> INSERT MESSAGE HERE </pre>
+Hit ctl-C. The message should pop up on thier terminal.
+
+</ul>
+
+
+

@@ -1,0 +1,79 @@
+    <ul>
+       <li> For Loop
+            <p>These examples simply print each iteration of the loop. This is really just the tip of the iceberg. Using things like this you can generate input files, or postprocess a whole directory results. All from the command line and without needing to write a script. </p>
+            <code> $ for i in *; do echo "Do something with $i"; done #all files in directory 
+                   $ for i in [0-9]*; do echo $i; done #files starting with numbers 
+                   $ for i in [a-z]*; do echo $i; done #files starting with letters 
+                   $ for i in {0..10}; do echo $i; done #0 to 10 
+                   $ for i in `seq 0 2 10`; do echo $i; done #0 to 10 every 2 
+                   $ for i in {a..z}; do echo $i; done #a to z 
+                   $ for i in {r,t,m,fl,b,sh}ow; do echo "row, row, $i the boat"; done #childrens song 
+            </code>
+      <li> String Manipulation
+            <code> i="abcdefg"
+                   ${i:0:3}  # "abc" first 3 elements of i
+                   ${i:1:3}  # "bcd" 2-4 elements of i
+                   ${i:2}    # "bcdefg" 2:end elements of i
+                   ${i:(-2)} # "fg" last 2 elements of i
+            </code>
+      <li> Conditional operations statements
+           <code> # multiple conditions? use the double brackets
+                  if [[ $i == "DNA" || $i == "PROTEIN" ]]; then
+                      echo "DNA or PROTEIN"
+                  fi
+           </code> 
+      <li> Comparison Operations
+           <code> if [ $mystring == "match"]; then echo "mystring equals 'match'"; fi
+                  if [ $myint -eq 42]; then echo "myint equals 42"; fi
+           </code>
+            <a href="http://www.tldp.org/LDP/abs/html/comparison-ops.html">Link</a>
+      <li> Comparison of floats
+           <p> First do comarison using bc, then test for the </p>
+           <code> test=`echo "($b &gt 10) &amp&amp ($b&lt50)" | bc`
+                  if [ $test -eq 1 ]; then echo true; else echo false; fi
+           </code>
+      <li> remove all non-numbers from string
+            <p> use sed </p>
+            <code> $echo "123 he23llo" | sed 's/[^0-9]*//g'
+                  12323
+            </code>
+            <p> pure bash </p>
+            <code> $ file="123 hello 12345 aaa"
+                   $ echo "${file//[!0-9]/}" 
+                   12312345
+            </code>
+                  
+
+<h2> bc (Bash Calculator) </h2>
+<ul>
+    <li> Normal Usage
+        <code> echo "scale=3; 2.324 + 2.579/4.333" | bc </code>
+    <li> Store into variable
+        <code> a=`echo "scale=3; 2.324 + 2.579/4.333" | bc` </code>
+    <li> Cast as integer
+        <p> scale=0 does not work, so just divide by 1
+        <code> a=`echo "(2.324 + 2.579/4.333)/1" | bc` </code>
+</ul>
+
+<h2> Find </h2>
+The find command is amazing for tracking down files.
+<ul>
+    <li> Resursively find files with name
+        <code>$ find . -name '*.out' </code>
+    <li> Find files that were accessed int the last 15 minutes
+        <code>$ find . -amin 15 </code>
+    <li> Change File and Directory permissions separately
+        <code>#directories 
+              find . -type d -exec chmod 755 {} \;
+              #files
+              find . -type f -exec chmod 644 {} \;
+        </code>
+        Here {} is replaces with each filename found by find.
+    
+</ul>
+
+
+
+</ul> 
+
+

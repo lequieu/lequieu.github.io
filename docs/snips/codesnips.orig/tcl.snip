@@ -1,0 +1,72 @@
+ 
+        <p> I mostly use Tcl to script for vmd, my understanding of the language is rather basic but functional. Since I code in it so sparingly, the commands here are mostly the basic syntax of the language to refresh my memory and get me off the ground relatively quickly.</p>
+
+    <ul>
+        <li> Basics
+            <code> #set variable
+                   set i 5
+                   # print variable
+                   puts $i
+            </code>
+        <li> Lists
+            <code> #set list (note l (el) looks like 1 (one))
+                   set l {1 2 3}
+                   # append to list
+                   lappend l 4 5 6
+                   # get 0th value from list
+                   lindex $l 0
+                   lindex $l 1
+                   # length of list
+                   llength $l
+                   # save length of list in value (note that [...] brackets are like `...` in bash)
+                   set mylength [ llength $l ]
+            </code>
+         <li> if/else
+            <code> if { $i == 5} {
+                      puts stdout "i is 5"
+                   } elseif { $i == 10} {
+                      puts stdout "i is 10"
+                   } elseif { $i &gt 5 &amp&amp $i &lt 10} {
+                      puts stdout "i between 5 and 10"
+                   }
+                   } elseif { [ expr ! ($i &gt 5 &amp&amp $i &lt 7)] } {
+                      puts stdout "i not between 5 and 7"
+                   } else {
+                      puts stdout "i is somethin else"
+                   }
+            </code>
+         <li> Loops
+            <code> #for loop (note spaces between {})
+                   for {set i 0} {$i &lt [ llength $l ]} {incr i}{
+                        puts [lindex $l $i]
+                   }
+                   #while loop
+                   set i 0
+                   while { $i &lt [ llength $l]} {
+                        puts [lindex $l $i]
+                        incr i 
+                   }
+            </code>
+         <li> Math
+            <code> #do math
+                   puts [expr 5+5*30]
+            </code>
+         <li> Arrays
+            <code> #arrays
+                   array set x {}
+                   set x(0) 5
+                   set x(5) 10
+                   puts $x(0)
+            </code>
+          <li> File i/o
+            <code> array set x {} 
+            set count 0
+            while { [gets $infile line ] &gt= 0 } { 
+              set x($count) $line
+              #set count [ expr {$count + 1} ]
+              incr count
+            }     
+            </code>
+    </ul>
+
+

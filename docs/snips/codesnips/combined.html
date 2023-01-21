@@ -1,0 +1,1324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Joshua Lequieu | Personal Website </title>
+  <link rel="stylesheet" href="assets/stylesheets/main.css">
+  <link rel="stylesheet" href='http://fonts.googleapis.com/css?family=Lato:100,300,400'>
+  <link rel="icon" type="image/png" href="assets/favicon.png">
+</head>
+<body>
+    <header class="primary-header container group">
+      <section>
+        <h1 class="logo"> 
+            <a href="index.html">Joshua Lequieu</a>
+        </h1>
+      </section>
+      <!--<h3 class="tagline"> Ph.D. Candidate, Molecular Engineering </h3>-->
+      <nav class="nav primary-nav">
+        <ul>
+        <li><a href="about.html">About</a></li><!--
+        --><li><a href="research.html">Research</a></li><!--
+        --><li><a href="cv.html">CV</a></li><!--
+        --><li><a href="codesnips.html">CodeSnips</a></li><!--
+        --><li><a href="contact.html">Contact</a></li>
+        </ul>
+      </nav>
+
+
+    </header>
+    <img class="bg" src="assets/images/lake_1200x.jpg" alt=""/>
+
+
+
+    <section class="content container">
+    <h1> Codesnips </h1>
+    
+    <p>
+    This page organizes various pieces of code or tips that I've learned along a way while working in a scientific computing environment.
+    They're mostly for my own reference and are strongly biased toward the tools that I use and the types of simulations and pre/post processing I tend to perform.
+    Nonetheless, I hope they're useful to anyone who works regularly at the command line.
+    </p>
+
+<h2> Awk </h2>
+    Awk can be intimidating at first to use but is really powerful for quickly postprocessing and rearranging data. Whenever I show things like this to one of my labmates, he responds unimpressed, "I could just do that in python". True, but awk's compact syntax makes it ideal for quick-and-dirty datafile manipulation, all straight from the command line.
+    <ul>    
+      <li> Basic Syntax
+        <code> awk 'BEGIN{ print "Initialize"} {print x++, $1, $2, $3} END{print "Finalize"}' mydatafile > mynewfile
+        </code>
+      <li> Changing the element in the <strong>i</strong>th column and <strong>j</strong>th row 
+        <p>Frequently when running submitting a batch of simulations, its necessary to vary a certain value within an input file. This can certainly be done with sed but I've found the following script to be pretty handy.</p>
+        <code> $ $1=[input file]; $2=[row]; $3=[column]; $4=[new value] 
+               $ awk -v row=$2 -v col=$3 'FNR==1{} FNR==row{\$col="$4"}1' ./$1 > mytmp.dat; mv mytmp.dat $1
+        </code>
+        <p>Or use the attached shell script: <a href="assets/codesnips/change_element.sh">change_element.sh</a></p>
+
+      <li> Print certain columns 
+           <code> $ awk '{print $1, $2}' orig.dat > new.dat 
+           $ awk 'NR &lt 10{print $1, $2}' orig.dat > new.dat 
+           $ awk 'NR==5,NR==10{print $1, $2}' orig.dat > new.dat
+           </code>
+
+      <li> Print lines with more than 2 columns
+           <code> awk 'NF>1 {print $1,$2}' orig.dat > new.dat
+           </code>
+
+      <li> Count lines whose second column is greater than 1000
+           <code> awk 'BEGIN{i=0} {if ($2 &gt 1000) i++} END{print i}' data.dat
+           </code>
+
+      <li> Sum column in file
+            <code>awk 'BEGIN{ a=0}{a+=$2}END{print a}' mass_pro.psf</code>
+
+      <li> Take external variable
+            <code>awk -v r=$R 'NR==72{print r" "$3*2}' file </code>
+
+      <li> Print Every N lines of file
+           <p> Occasionally I have massive datasets that I need to downsample. A quick awk command does the trick:</p>
+           <code> awk '{if (NR % 100 == 0) print $1,$2,$3}' HILLS_0_99 &gt HILLS_0_99_DOWNSAMPLE
+           </code>
+           <p> Or if time is in first column, can print every N timesteps: </p>
+           <code> awk '{if ($1 % 10000 == 0) print $1,$2,$3}' HILLS_0_99 &gt HILLS_0_99_DOWNSAMPLE
+           </code>
+      <li> Flip rows and columns
+           <code>
+awk '
+{ 
+    for (i=1; i&lt=NF; i++)  {
+        a[NR,i] = $i
+    }
+}
+NF&gtp { p = NF }
+END {    
+    for(j=1; j&lt=p; j++) {
+        str=a[1,j]
+        for(i=2; i&lt=NR; i++){
+            str=str" "a[i,j];
+        }
+        print str
+    }
+}' file
+           </code>
+           <p>Or use the attached shell script: <a href="assets/codesnips/flip_rows_and_columns.sh">flip_rows_and_columns.sh</a></p>
+           <a href="http://stackoverflow.com/questions/1729824/transpose-a-file-in-bash">credit</a>
+        
+    </ul>    
+
+
+<h2> Bash Scripting </h2>
+    <ul>
+       <li> For Loop
+            <p>These examples simply print each iteration of the loop. This is really just the tip of the iceberg. Using things like this you can generate input files, or postprocess a whole directory results. All from the command line and without needing to write a script. </p>
+            <code> $ for i in *; do echo "Do something with $i"; done #all files in directory 
+                   $ for i in [0-9]*; do echo $i; done #files starting with numbers 
+                   $ for i in [a-z]*; do echo $i; done #files starting with letters 
+                   $ for i in {0..10}; do echo $i; done #0 to 10 
+                   $ for i in `seq 0 2 10`; do echo $i; done #0 to 10 every 2 
+                   $ for i in {a..z}; do echo $i; done #a to z 
+                   $ for i in {r,t,m,fl,b,sh}ow; do echo "row, row, $i the boat"; done #childrens song 
+            </code>
+      <li> String Manipulation
+            <code> i="abcdefg"
+                   ${i:0:3}  # "abc" first 3 elements of i
+                   ${i:1:3}  # "bcd" 2-4 elements of i
+                   ${i:2}    # "bcdefg" 2:end elements of i
+                   ${i:(-2)} # "fg" last 2 elements of i
+            </code>
+      <li> Conditional operations statements
+           <code> # multiple conditions? use the double brackets
+                  if [[ $i == "DNA" || $i == "PROTEIN" ]]; then
+                      echo "DNA or PROTEIN"
+                  fi
+           </code> 
+      <li> Comparison Operations
+           <code> if [ $mystring == "match"]; then echo "mystring equals 'match'"; fi
+                  if [ $myint -eq 42]; then echo "myint equals 42"; fi
+           </code>
+            <a href="http://www.tldp.org/LDP/abs/html/comparison-ops.html">Link</a>
+      <li> Comparison of floats
+           <p> First do comarison using bc, then test for the </p>
+           <code> test=`echo "($b &gt 10) &amp&amp ($b&lt50)" | bc`
+                  if [ $test -eq 1 ]; then echo true; else echo false; fi
+           </code>
+                  
+
+<h2> bc (Bash Calculator) </h2>
+<ul>
+    <li> Normal Usage
+        <code> echo "scale=3; 2.324 + 2.579/4.333" | bc </code>
+    <li> Store into variable
+        <code> a=`echo "scale=3; 2.324 + 2.579/4.333" | bc` </code>
+    <li> Cast as integer
+        <p> scale=0 does not work, so just divide by 1
+        <code> a=`echo "(2.324 + 2.579/4.333)/1" | bc` </code>
+</ul>
+
+<h2> Find </h2>
+The find command is amazing for tracking down files.
+<ul>
+    <li> Resursively find files with name
+        <code>$ find . -name '*.out' </code>
+    <li> Find files that were accessed int the last 15 minutes
+        <code>$ find . -amin 15 </code>
+    <li> Change File and Directory permissions separately
+        <code>#directories 
+              find . -type d -exec chmod 755 {} \;
+              #files
+              find . -type f -exec chmod 644 {} \;
+        </code>
+        Here {} is replaces with each filename found by find.
+    
+</ul>
+
+
+
+</ul> 
+
+
+<h2> Beamer (Presentations in Latex) </h2>
+    <ul>
+       <li> Remove navigation bar from beamer and add slide count
+            <code>%gets rid of bottom navigation bars
+                  \setbeamertemplate{footline}[slide number]{}
+                  %gets rid of navigation symbols
+                  \setbeamertemplate{navigation symbols}{}
+            </code>
+       <li> No Slide number on Title Slide
+         <p> Just turn numbers off then on...a hack, I know </p>
+         <code>\setbeamertemplate{footline}{}
+               \begin{frame}[noframenumbering]
+               \titlepage
+               \end{frame}
+               \setbeamertemplate{footline}[slide number]{}
+         </code>
+       <li> Text sequentially appear within frame
+         <code> \onslide<1-> Appears on slide 1 onward
+                \onslide<2-> Appears on slide 2 onward
+                \onslide<1-> Appears on slide 1 onward
+         </code>
+       <li> Playing movies
+         <p> Use animate package to embed into pdf. To play the moveies you'll need acrobat reader (which is no longer supported for linux). To get this to work I've found it best to install playonlinux and then install acrobat reader from playonlinux's servers. This allowed me to play movies in my pdfs. So far performance is fast, and seems to work well. </p>
+
+         To get this to work on a clean install, you need to add the i386 architecture
+
+
+         dpkg --add-architecture i386
+         aptitude update
+         aptitude install playonlinux
+         aptitude install wine32
+
+         Link to get old Acrobat versions:
+         ftp://ftp.adobe.com/pub/adobe/reader/win/AcrobatDC/1501020056/
+         Link Explaining Multi Arg
+         https://wiki.debian.org/Multiarch/HOWTO
+
+    </ul>
+    
+    <h2> Blackberry </h2>
+    <p> Why do I still have a blackberry? Still not sure, but here's some things I've learned along the way tryping to get things to work:
+    <ul>
+        <li> Useful Tools
+        
+        <li> How to completely wipe
+        <a href="http://crackberry.com/blackberry-302-complete-wipe-and-install-your-blackberry-os">Complete Wipe Tutorial</a></br>
+        <li> Blackberry and Linux
+          <a href="http://crackberry.com/no-blackberry-desktop-manager-linux-check-out-linberry">linberry</a>
+          <a href="https://sourceforge.net/projects/barry/">barry</a>
+        <li> Downloading new OS (for wipe)
+          <a href="https://www.blackberry.com/Downloads/entry.do?code=02A32AD2669E6FE298E607FE7CC0E1A0">download site</a>
+
+    </ul>
+
+
+    <h2> Blender </h2>
+    <p> Blender is an amazing piece of software that I've wanted to learn for a long time. I'm enticed by the many beautiful videos on youtube, I think: "I want my simulation visualizations to look like that!".
+    <ul>
+        <li> Loading Molecular Trajectories
+        <p> To visualize molecular trajectories you first initialize the system, and then reposition each object in the scene acccording to the trajectory, setting key frames along the way. A simple script to do this (still work in progress) is <a href="assets/codesnips/simple_particle_motion_multi.py">here</a>.  A fellow named Scott Hartley also put together a useful <a href="http://blog.hartleygroup.org/2015/02/27/a-quick-intro-to-importing-molecular-geometries-into-blender-through-the-blmol-script/">tool</a> for visualizing molecules, at some point I'll combine this all to generate beautiful trajectories. </p>
+        <p>Note that you'll need to load numpy into Blender, this worked for me</p>
+        <code>
+          sudo apt-get install python3.4
+          sudo apt-get install python3-pip
+          sudo pip3 install numpy
+          sudo cp -r /usr/local/lib/python3.4/dist-packages/num* /usr/share/blender/scripts/modules/
+        </code>
+        <li> Show All Operators
+          <p> Include at command line "--debug-wm" during startup. Or issue command from blender python terminal.</p> 
+          <code> bpy.app.debug_wm = True</code>
+
+        <li> Import Mesh
+            <code> bpy.ops.import_scene.obj(filepath="file.obj")
+                   bpy.ops.import_mesh.ply(filepath="file.ply")
+            </code>
+        <li> Active Object
+            <code> ob = bpy.context.scene.objects.active </code>
+        <li> Setting up environment
+            <p> It works best to do text editing in vim, load the file of interest into the beamer text editor, and refresh and run the script using beamer gui.
+    </ul>
+
+
+    <h2> C++/C </h2>
+    <ul>
+        <li> 2-d array in continuous memory
+        <p> Occasionally one might want to allocate a 2d array in continuous memory. This can provide faster access, easier copying, or slicker commands with MPI.</p>
+        <code> int i,NX, NY;
+            double **array2d;
+            array2d =  (double**) calloc(NX,sizeof(double*));
+            array2d[0] = (double*) calloc(NX*NY,sizeof(double*));
+            for(i=1;i &lt NX;i++){
+                array2d[i] = &array2d[0][i*NY];
+            }
+        </code>
+
+        <li> Random Numbers (C)
+        <p> A simple library I wrote to use random numbers in C code can be <a href="assets/codesnips/myrandom.h">downloaded here</a>. I find it annoying to use rand()/RAND_MAX. Of course, the simple usage of rand() could be replaced with a better pseudorandom number generator. Usage is as follows:
+        <code>#include "stdio.h"
+              #include "stdlib.h"
+              #include "myrandom.h"
+
+              int main(int argc, char **argv){
+                  int i;
+                  double r;
+                  FILE *fptr;
+                  fptr=fopen("rand.dat","w");
+                  for(i=0; i<100000;i++){
+                      fprintf(fptr,"%f\n",myrandom_gauss(1));
+                  }   
+                  fclose(fptr);
+              }
+        </code>
+    </ul>
+
+
+   <h2> Cuda/Nvidia </h2>
+    <ul>
+        <li> Driver install
+        <p> To avoid those all-to-often times that I break my machine while installing graphics drivers, here are some tips from Julio, a postdoc in the group. Following them, I was able to get cuda working on my machine in the first shot...I didn't even know that was possible.
+        <ul>
+            <li> Never upgrade Nvidia drivers! First remove them, switch back to nouveau (using Driver Management tool, or command line) then do a fresh install of your desired new driver. Failure to do this is frequently what breaks a system. Restart then remove all nvidia drivers using:
+                 <code> sudo apt-get remove --purge nvidia*
+                 </code>
+            <li> On first attempt try using Ubuntu's native Driver Management tool, install the newest version. If you need cuda, go to the the Nvidia website and download the latest toolkit, being sure to remove the old install before performing a new one.
+            <li> To check if the install went okay open nvidia-settings and check the "OpenGL/GLX Information" tab. If the info in the "GLX Extensions" area is populated, the driver is likely working correctly. If there was an error with the install, then it might cause a crash here.
+        </ul>
+        </p>
+    </ul>
+
+
+    <h2> gdb (debugging C/C++) </h2>
+    <ul> 
+        <li> Conditional Breakpoint
+            <code> b test.cpp:199
+                   cond 1 denom == 0
+            </code>
+        <li> Execute Commands (ie printing) at breakpoint
+            <code> command N
+                   print i
+                   print j
+                   end
+            </code>
+            where N is the breakpoint number you want to issue commands at.
+    </ul>
+
+<h2> Gnuplot </h2>
+    
+    <ul>
+      <li> "For" Loops
+            <code> > plot for [i in 0:100:10] sprintf('./file_%02d',i) u 1:2 ti sprintf('%d',i) 
+                   > plot for [i in "hot warm cold"] sprintf('./%s/file_00',i) u 1:2 ti sprintf('%s',i) 
+                   plot for [i=0:10] 'file_'.i.'.dat ti ''.i
+                   plot for [i=0:10] for [j=0:5] 'file_'.i.'.'.j.'.dat ti ''.i.' '.j
+            </code>
+      <li> Generating Histograms
+           <code> > binwidth=0.1; bin(x,width) = width*floor(x/width) 
+                  > p 'myfile' u (bin($2,binwidth)):(1.0) smooth freq w l
+           </code>
+
+      <li> Calculating Derivatives
+        <code> > d2(x,y) = ($0 == 0) ? (x1 = x, y1 = y, 1/0) : (x2 = x1, x1 = x, y2 = y1, y1 = y, (y1-y2)/(x1-x2)) 
+               > p 'myfile' u 1:(d2($1,$2))
+        </code>
+        <a href="http://stackoverflow.com/questions/15751226/how-can-i-plot-the-derivative-of-a-graph-in-gnuplot">Credit</a>
+      <li> Curve-fitting
+          <code>> FIT_LIMIT=1.e-5        #optional, tolerance value
+                > f1(x) = a1*tanh(x/b1)  # define the function to be fit
+                > a1 = 300; b1 = 0.005;  # initial guess for a1 and b1
+                > fit f1(x) 'force.dat' using 1:2 via a1, b1
+                > plot f1(x), 'force.dat' u 1:2
+          </code>
+
+          <a href="http://people.duke.edu/~hpgavin/gnuplot.html">Credit</a><br>
+
+          If you want to save the fit parameters to a file.
+          <code>> set print "params.dat"
+                > print a1; print b1    # different line
+                > print a1,' ',b1       # same line
+          </code>
+
+      <li> Curve-fitting (in log space)
+        <p> If you naively fit a curve in log-log space, you'll end up unequally weighting the large y values more than the small ones (since they contribute more to the SSR). To do this right, the fit must be performed in log space.</p>
+        <code> # power law
+              fit a*x+b './msd_log.dat' u (log10($1)):(log10($2)) via a,b
+              set log xy
+              p './msd_log.dat' u 1:2, (10**b)*x**a
+        </code>
+
+        <p> Also, dont forget that you should also resample your data so that its evenly distributed in log space. Otherwise, you wont calculate the correct fit because the SSR is skewed by the uneven point distribution <\p>
+
+      <li> Taking command line args - nest withing bash
+            
+<code class="codeblock">#!/bin/bash
+if [ $# -ne 1 ]; then
+    echo "Usage: $0 &lt file to plot &gt"
+    exit
+fi
+FILE=$1
+
+gnuplot << EOF 
+set terminal postscript enhanced eps color "Arial" 24
+set output 'fig_$FILE.eps' # use FILE variable defined above
+plot '$FILE'u 1:(\$2 + 10) # note escaped '$'
+EOF
+</code>
+
+     <li> Multiple y-axis
+        <code> > set y2tics; set ytics nomirror
+               > p 'data1.dat' u 1:2 axis x1y1, 'data2.dat' u 1:2 axis x1y2
+        </code>
+     <li> Special characters (in eps terminal)
+        <code> > set terminal postscript enhanced eps color "Arial" 24
+               > set xlabel '{/Symbol w}'
+               > set ylabel 'G{/Symbol \242}, G{/Symbol \242\242} (atm)'
+               > # or set ylabel 'G{/Text \302} (atm)'
+        </code>
+        <code> set encoding iso_8859_1
+               set xlabel 'Separation {\305}' #angstroms
+        </code>
+
+        A list of symbols that you can use can be found in <a href="./assets/codesnips/ps_guide.pdf">this</a> pdf. Credit is not mine.
+    
+    <li> Getting Parameters from external file (use `...` as in bash)
+        <code> m = `cat myparams.dat | cut -f 1 -d ' '`
+               b = `cat myparams.dat | cut -f 2 -d ' '`
+               plot m*x + b
+        </code>
+    <li> Plotting 4-d curve
+        <code> > set pm3d implicit as s
+               > splot './myfile.dat' u 1:2:3:4 w pm3d
+        </code>
+    <li> Loading color maps
+        <p> Gnuplot is great, but some of its default color schemes are ugly. Load up a color map and quickly change the feel of your plots. You can find many examples on the <a href="https://github.com/Gnuplotting/gnuplot-palettes">gnuplot-palettes repositore on github</a>. </p>
+        <code> > set loadpath '~/gp_config/
+               > load 'parula.pal'
+         </code>
+         <p> Sometimes I just want the colors so I can set line color manually. The colors from spectral.pal are here.
+         <code> myred='#D53E4F'
+                myorange='#F46D43'
+                mygreen='#66C2A5'
+                myblue='#3288BD'
+                myblack='#000000'
+                mywhite='#FFFFFF'
+                p 'data.dat' w l lc rgb myblue
+         </code>
+
+    <li> Bar Graph
+        <code> # single bar graph
+               set boxwidth 0.5
+               set style fill solid
+               plot "data.dat" using 1:3:xtic(2) with boxes
+
+               #multiple bars
+               set style data histogram
+               set style histogram cluster gap 1
+               set style fill solid border rgb "black"
+               p 'file' u 2:xtic(1) ti '' ls 11,\
+                 'file' u 3:xtic(1) ti '' ls 12
+
+         </code>
+    <li> Multiple Bar Graph with Error Bars
+        <code>set xrange [-0.5:12.75]
+              set xtic rotate by -45
+              set boxwidth 0.25
+              plot 'file.dat' using ($0-.05):4:5:xtic(1) with boxerrorbars title col, \\
+                   '' using ($0+0.25):2:3 with boxerrorbars title col
+        </code>
+
+    <li> Plotting from stdin
+        <p> tail, head or any other shell command can be used to dynamically preprocess the data before it is plotted </p>
+        <code> plot '&lt tail -n 100 file2plot.dat' u 1:2
+               plot '&lt head -n 100 file2plot.dat' u 1:2
+        </code>
+
+    <li> Exponential axis labels (e.g. for log scale plots)
+        <code>  set logscale x
+                set format x "10^{%L}" 
+                # or set xtics format "10^{%L}"
+
+                # Also, if you want more precision, use %t or %T
+                set format x "%0.1t{/Symbol \264}10^{%L}"
+                set format x "%0.1t {\267}10^{%L}" 
+
+                #or if you just want to use %t,%T or %l in general
+                # use gprintf then sprintf
+                base = gprintf('%0.1t',D)
+                exp = gprintf('%T',D)
+                set label at 100,0.10 sprintf('D = %s{/Symbol \264}10^%s ',base,exp) 
+
+        </code>
+    <li> Plot a matrix (no interpolation)
+        <code>
+          p './dist.dat' matrix with image
+        </code>
+    <li> Color line with splot
+        <p> To plot a line on splot whose color varies based on a third value in the data file use the following. More info <a href="http://www.gnuplotting.org/using-a-palette-as-line-color/">here</a>. </p>
+        <code> # the following sets the pallete
+               # start value for H
+               h1 = 117/360.0
+               # end value for H
+               h2 = 227/360.0
+               # creating the palette by specifying H,S,V
+               set palette model HSV functions (1-gray)*(h2-h1)+h1,1,0.68
+
+               # this plots (defining the above palette isn't actually necessary)
+               splot [-pi:pi][-1.5:1.5] './0_0/output/HILLS_00' u 2:3:1 w l lc palette
+        </code>
+     <li> Quickly define a pallete
+        <code> set palette model RGB
+               set palette file "-"
+               1 0 0
+               1 1 0
+               0 1 0
+               0 0 1
+               e
+        </code>
+     <li> Write values to file
+         <p> If gnuplot has been used to calculate some parameters (i.e. average, fit, etc), that parameter can be written to a file as follows /<p>
+         <code> set print "myfile.dat"
+                print v1,' ',v2,' ',v3
+         </code>
+     <li> Collapse X-axis of multiplot
+         <p> If you want to stack multiple plots on the same figure that have the same x-axis define some 'macros' to make the code clearer. <a href="http://www.gnuplotting.org/multiplot-placing-graphs-next-to-each-other/">Gnuplotting.org</a> contains a useful article on this.</p>
+         <code> # this example is for 4 plots
+         # Enable the use of macros
+         set macros
+        
+         NOXTICS = "set xtics ('' 0, '' 100,'' 200, '' 300, '' 400, '' 500); unset xlabel"
+         XTICS = "set xtics ('0' 0, '100' 100,'200' 200, '300' 300, '400' 400, '500' 500); set xlabel 'r ({\305})'"
+
+         # Margins for each row resp. column
+         TMARGIN = "set tmargin at screen 0.90; set bmargin at screen 0.666"
+         MMARGIN = "set tmargin at screen 0.666; set bmargin at screen 0.433"
+         BMARGIN = "set tmargin at screen 0.433; set bmargin at screen 0.20"
+
+         set multiplot layout 3,1
+         @NOXTICS; @TMARGIN
+         p '1.dat'
+         @NOXTICS; @MMARGIN
+         p '2.dat'
+         @XTICS; @BMARGIN
+         p '3.dat'
+         </code>
+
+         <code> # this example is for 2 plots
+         set macros
+         NOXTICS = "set xtics ('' 0, '' 100,'' 200, '' 300, '' 400, '' 500); unset xlabel"
+         XTICS = "set xtics ('0' 0, '100' 100,'200' 200, '300' 300, '400' 400, '500' 500); set xlabel 'r ({\305})'"
+         TMARGIN = "set tmargin at screen 0.90; set bmargin at screen 0.55"
+         BMARGIN = "set tmargin at screen 0.55; set bmargin at screen 0.20"
+         @NOXTICS; @TMARGIN
+         p '1.dat'
+         @XTICS; @BMARGIN
+         p '2.dat'
+         </code>
+
+         <p> This is a smoother way to do it </p>
+         <code>
+         set macros
+         set yrange [0:90]
+         NOYTICS = "set ytics ('' 0, '' 10, '' 20, '' 30, '' 40 , '' 50, '' 60, '' 70, '' 80, '' 90); unset ylabel"
+         YTICS = "set ytics 10; unset ylabel"
+
+         hmarginmin = 0.20
+         hmarginmax = 0.9 
+         numhplot = 3 
+         dh = (hmarginmax - hmarginmin) / numhplot
+
+         SETMARGINS="lo= hmarginmin + (hindex-1)*dh; hi=lo+dh; set lmargin at screen lo; set rmargin at screen hi"
+
+         hindex = 1 
+         @SETMARGINS
+         @YTICS
+         p  '1pN/freefile.wham' u 1:($2/kT) ti '2pN'  w l ls 11 lw 5 
+
+         hindex = 2 
+         @SETMARGINS
+         @NOYTICS
+         p  '7pN/freefile.wham' u 1:($2/kT) ti '6pN'  w l ls 13 lw 5
+
+         hindex = 3 
+         @SETMARGINS
+         @NOYTICS
+         p '5pN/freefile.wham' u 1:($2/kT) ti '10pN' w l ls 15 lw 5
+         </code>
+
+     <li> Draw vertical line
+        <code>    p  '&ltecho "10 100"' w impulse </code>
+
+     <li> Shaded Errorbars
+        <code> set style fill solid 0.3
+               p  'data.dat' u 1:2 w l,\
+                 '' u 1:2:($2+$3) w filledcu,\
+                 '' u 1:2:($2-$3) w filledcu
+        </code>
+     <li> Fitting multiple functions simultaneously
+    
+    helpful discussion: http://gnuplot.10905.n7.nabble.com/fit-multi-branch-simultaneous-fits-of-2-data-sets-td1481.html 
+    [begin quote]
+    For simplicity, suppose I had two data sets, both governed by a simple
+    exponential decay with the same time constant but different initial values,
+    i.e., z = a*exp(-t/T) for the first data set and z = b*exp(-t/T) for the second,
+    and I want to fit the decay for both data sets with a common parameter T.
+
+    In help fit multi-branch of gnuplot, it says
+    "The function and parameters (branch) for each data set are selected by using a
+    'pseudo-variable', e.g., either the dataline number (a 'column' index of -1) or
+    the datafile index (-2), as the second independent variable." and in the example
+    it gives
+          f(x,y) = (y==0) ? a*exp(-x/tau) : b*exp(-x/tau)
+          fit f(x,y) 'datafile' using  1:-2:2:3  via a, b, tau
+
+    Could anybody help me with the following?
+    1. How is f(x,y) switched between a*exp(-x/tau) and b*exp(-x/tau) in the fitting
+    procedure? Specifically, when the fitting program read a line in the data file,
+    it sees x:z (first column independent and second column dependent). How does the
+    program decide which function to use? Since there is no 'y' involved.
+    [end quote]
+
+	sure there is a 'y' involved: it's the 2nd argument of the 'using' specifier.
+
+	in detail:
+	using  1:-2:2:3
+	means:
+	the x-value is read from column 1
+	the y-value is the current index (=data block) number
+	the z-value is read from column 2
+	the s-value is read from column 3
+
+	so, if your two data sets are in one file - separated by two empty lines
+	- then the 1st data set will have the index number '0' and the 2nd index '1'.
+	this index is given to the function as y-value which switches between the
+	two functions.
+
+	[begin quote]
+	2. Could anybody give me an example of function and parameters selection using
+	the dataline number (a 'column' index of -1)?
+	[end quote]
+
+	f(x,y) = (y<1000) ? a*exp(-x/tau) : b*exp(-x/tau)
+	fit f(x,y) 'datafile' using  1:-1:2:3  via a, b, tau
+
+	the 1st 1000 data sets (=lines) are fitted using the 1st function,
+	the remaining data sets are fitted using the 2nd function.
+ 
+
+
+    </ul>
+ 
+<h2> Image Processing </h2>
+    <ul>
+     <li>Autocrop an image
+        <code>$ convert image.jpg -trim -bordercolor White -border 20x10 +repage cropped_image.jpg</code>
+        <a href="http://pebblesinthesand.wordpress.com/2012/01/05/autocrop-images-with-imagemagick/">Credit</a>
+     <li> Manually crop an image
+        <code> convert original.png -shave 100x100 crop.png #shave 100 pixels off of each edge
+        </code>
+     <li>Autocrop an eps image 
+        <code>$ eps2eps image.eps cropped_image.eps #wow that was easy!</code>
+        <code>$ epstool --copy --bbox old.eps new.eps</code>
+        <a href="http://sachinashanbhag.blogspot.com/2011/03/how-to-place-tight-bounding-box-around.html">Credit</a>
+     <li> eps to png (and back again) at high resolution
+        <div>
+        <ul>
+         <li> <a href="assets/codesnips/eps2png">eps2png</a> 
+         <li> <a href="assets/codesnips/png2eps">png2eps</a> 
+        </ul>
+        <a href="https://github.com/rkh/papers/blob/master/swt/pics/png2eps#L1">Credit</a> and Dan Hinckley
+        </div>
+     <li> Resize Image
+        <code> $ # resize while maintaining aspect ratio
+               $ convert image.jpg -resize 500x image_500x.jpg
+        </code>
+     <li> Make Image Transparent
+        <code> $ convert image.png -transparent White newimage.png </code>
+
+     <li> Creating Animated .gif
+        
+        <code> $ # delay = time per gif, loop = number of times to loop (0 = inf)
+               $ convert -delay 20 -loop 0 *.png myimage.gif </code>
+     <li> Watermark Image
+        <code> $ composite -dissolve 15 -tile wmark.png image.jpg image_with_wmark.jpg 
+               $ composite -dissolve 15 -gravity south wmark.png image.jpg image_with_wmark.jpg 
+        </code>
+
+     <li> Combine Images into Movie
+        <code> #assumes all the frames are jpg
+               mencoder "mf://*.jpg" -mf fps=10 -o ./movie.avi -ovc lavc -lavcopts vcodec=msmpeg4v2:vbitrate=1800
+        </code>
+        <p> Snippets using avconv</p>
+        <code> # create movie from images
+               avconv -framerate 25 -f image2 -i image-%03d.jpeg -b 65536k out.mov
+               # create movie from images (high quality)
+               avconv -framerate 25 -f image2 -i %04d.png -c:v h264 -crf 1 out.mov
+        </code>
+
+     <li> Extract Images from Movie
+        <code> $ avconv -i movie.mpg -r 10 frme-%4d.jpg
+               $ # also should work with ffmpeg
+        </code>
+        
+    </ul>
+
+
+   <h2> Inkscape </h2>
+    <ul>
+        <li> Special Characters
+            <p>Type ctrl-u then the unicode code found <a href="http://jrgraphix.net/research/unicode_blocks.php?block=1">here</a>.</p>
+       <li> Drawing a double helix 
+           <p> Follow tutorial <a href="http://graphicdesign.stackexchange.com/questions/45064/drawing-a-double-helix-in-inkscape">here</a>.
+    </ul>
+   
+
+    <h2> Latex </h2>
+    <ul>
+       <li> Adding new packages
+            <p> Put them in "~/texmf/" (for user) or "/usr/local/share/texmf" (for all users), then execute </p>
+            <code> 
+                  texhash ~/texmf 
+                  texhash /usr/local/share/texmf
+            </code>
+            <p> I've found that APS's Revtex package has issues finding the correct bibtex file "aipnum4-1.bst". To fix this, install package "texlive-full", its huge, but things work afterwards...</p>
+
+       <li> Supplemental Figure Numbering (i.e. Fig. S1)
+               <code>\renewcommand{\thefigure}{S\arabic{figure}}
+               </code>
+       <li> Citing SI from Maintext of paper (and vice-versa)
+               <p> in manuscript.tex </p>
+               <code>\usepackage{xcite}
+                     \usepackage{xr}
+                     \externaldocument{si}
+               </code>
+               <p> in si.tex </p>
+               <code>\usepackage{xcite}
+                     \usepackage{xr}
+                     \externaldocument{manuscript}
+               </code>
+               <p> Just use \ref{} and \cite{} as usual and everything should just work </p>
+
+       <li> New Packages (or Themes)
+            <code> kpsexpand \$TEXMFLOCAL
+                   kpsexpand \$TEXMFHOME
+            </code>
+       <li> Ignore latex things with aspell
+            <code>aspell --dont-tex-check-comments --add-tex-command="citep op" --add-tex-command="citet op" -c proposal.tex</code>
+        <li> Making section formatting compact and pretty (also used in a proposal)
+            <code>
+                \usepackage[compact]{titlesec}
+              %correct section numbering
+              \renewcommand\thesection{\arabic{section}}
+              \renewcommand\thesubsection{\thesection.\arabic{subsection}}
+              \renewcommand\thesubsubsection{\thesubsection.\arabic{subsubsection}}
+              % and display when sections are referenced
+              \makeatletter
+              \def\p@subsection{}
+              \def\p@subsubsection{}
+              \makeatother
+
+              %format section format 
+              \titleformat{\section}{\normalfont\bfseries\scshape}{\thesection.}{1ex}{}
+              \titleformat{\subsection}[runin]{\normalfont\bfseries}{\thesubsection.}{1ex}{}[.]
+              \titleformat{\subsubsection}[runin]{\normalfont\bfseries}{\thesubsubsection.}{1ex}{}[.]
+              </code>
+        <li> Space saving (i.e. for a proposal)
+            <code>
+                \usepackage[compact]{titlesec}
+                % squeeze the vertical space
+                \setlength{\parskip}{0pt}
+                \setlength{\parsep}{0pt}
+                \setlength{\headsep}{0pt}
+                %\setlength{\topskip}{0pt} % this makes the document 1000's of pages long
+                \setlength{\topmargin}{0pt}
+                \setlength{\topsep}{0pt}
+                \setlength{\partopsep}{0pt}
+                \linespread{1.0}
+
+                % reduce white space around figures
+                \addtolength{\intextsep}{-1eM} %squeeze text around floats
+                \addtolength{\abovecaptionskip}{-1eM} %squeeze text around figure captions
+                \addtolength{\belowcaptionskip}{-0.2eM} %squeeze text around figure caption
+            </code>
+        <li> Removing Type 3 Fonts 
+            <p> I was once submitting to a journal whose latex compiler complained about type 3 fonts in my manuscript.pdf file. Heres how I fixed it: </p>
+            <ul> 
+                <li> Convert all images to .pdf files
+                <li> Loop over all images and manuscript "pdffonts image1.pdf" to check for Type 3 fonts
+                <li> Eliminate Type 3 fonts from the files (I had success using inkscape, I just had to change the font of a special greek symbol I was using)
+            </ul>
+    </ul>
+
+<h2> Misc Linux Setup </h2>
+    <ul>
+        <li> Connect to internet via commandline
+            <p> Useful commands (will organize later) </p>
+            <code> ifconfig
+                   iwconfig
+                   iwlist scan
+                   dhclient eth0
+                   #connecting to wpa network
+                   wpa_passphrase myssid mypasskey
+                   wpa_supplicant -Bw -Dwext -i wlan0 -c/etc/wpa_supplicant.conf
+            </code>
+         <li> Cat-cam (or Security Cam) - motion
+         <li> Static IP Address
+            <p> Open /etc/network/interfaces and enter something like
+            <code> 
+              iface eth0 inet static
+                address 192.168.1.10
+                network 192.168.1.0
+                netmask 255.255.255.0
+                broadcast 192.168.1.255
+                gateway 192.168.1.254
+            </code>
+            <code>/etc/init.d/networking restart
+            </code>
+         <li> Get External IP Address
+            <code>wget -qO- http://ipecho.net/plain ; echo</code>
+
+         <li> Fixing and Debugging sound
+            <code> arecord -d 3 /tmp/test-mic.wav
+                   aplay /tmp/test-mic.wav
+                   #allowed mic config
+                   alsamixer -c 0
+            </code>
+         <li> Hard drive check
+            <code>smartctl -a /dev/sdXXX| less </code>
+         <li> Make Live USB
+            <ol>
+                <li> Download .iso
+                <li> Insert USB and use fdisk -l to figure out where it is in /dev/
+                <li> <code>sudo dd if=/home/[PATH]/my.iso of=/dev/sdXXX
+                </code>
+            </ol>
+            
+         <li> Grub Rescue
+            Commands to look around  
+            <code> 
+            grub&gt set pager=1
+            grub&gt ls
+            grub&gt cat (hd0,1)/etc/issue
+            </code> 
+            Once you've found the linux partition you want to boot from (in this case hd0,1) then issue the following: 
+            <code> 
+            grub&gt set root=(hd0,1)
+            grub&gt linux /boot/vmlinuz-3.13.0-29-generic root=/dev/sda1
+            grub&gt initrd /boot/initrd.img-3.13.0-29-generic
+            grub&gt boot
+            </code>
+            The "root=/dev/sdaX" at the end of the second line is necessary. Don't omit it!
+
+            Once you've booted issue the following commands to make the changes permanent
+            <code>
+            # update-grub
+            # grub-install /dev/sda
+            </code>
+            
+            <a href="https://www.linux.com/learn/tutorials/776643-how-to-rescue-a-non-booting-grub-2-on-linux/">Source.</a>
+         <li> Fixing Boot Loader on Thinkpad (dual boot Windows, Linux)
+              <p>While installing linux I accidently made my system unbootable (whoops!). Here's how I fixed it: </p>
+              
+              <p>In order to boot linux, I downloaded <a href="http://www.supergrubdisk.org/super-grub2-disk/">super-grub2-disk</a> and booted it off of a usb. </p>
+              
+              
+              <p> Then I used the following tutorial to save me:
+              https://wiki.gentoo.org/wiki/GRUB2#Installing_the_boot_loader </p>
+              
+              First Figure out whether you have: BIOS with MBR, BIOS with GPT, or UEFI with GPT (this is what I had)
+              
+              In my case I had to
+              <ol>
+              <li> 1) Partition space on /dev/sda1 for the EFI partition
+              <li> 2) Create a file system for EFI partition
+              <code>mkdosfs -F 32 -n efi-boot /dev/sda1</code>
+              <li> 3)Create /boot/efi
+              <code>mkdir /boot/efi</code>
+              <li> 4) Get UUID of new partition and then Edit /etc/fstab to automatically mount /dev/sda1 to /boot/efi
+              sudo blkid
+              Add this to /etc/fstab
+              <code>UUID=CHANGEME   /boot/efi   vfat        noauto,noatime  1 2</code>
+
+              <li> 5) Mount it
+              <code>mount /boot/efi</code>
+
+              <li> 6) Install grub on this new partition
+              <code>grub-install --efi-directory=/boot/efi</code>
+
+              <li> 7) Restarted and Linux worked (Win10 still didn't though)
+              </ol>
+              To Fix the Windows boot I had to:
+              <ol>
+              <li> 1) Download a Windows 10 image and put it on a bootable USB
+              <li> 2) Boot off of the USB and try to issue the Windows boot recovery command (it failed)
+              <li> 3) Issue commands like:
+                <code>bootrec /RebuildBcd
+                bootrec /fixMbr
+                bootrec /fixboot
+                </code>
+                or
+                <code>bootsect /nt60 drive_letter: /mbr  
+                      bootsect /nt60 SYS
+                      bootsect /nt60 ALL
+                </code>
+                To get drive_letter I used command
+                <code> wmic logicaldisk get deviceid, volumename, description</code>
+
+                (I ended up using all of these commands at some point)
+              <li> 4) I reran the Windows automated boot recovery command (one of the commands in step 3 allowed it to run sucessfully)
+              <li> 5) I booted back into linux and ran
+                  <code>grub-install --efi-directory=/boot/efi</code>
+                 to default boot into grub. From here I could boot into both Windows10 and Linux. Whew!
+
+              </ol>
+        <li> Laptop Power Management (powertop, tlp)
+            Just install them, and change settings...
+
+        <li> Restore Graphics
+            Use "tasksel" to install the desktop environment. Once its installed issue the "startx" command.
+
+        <li> Single Directory Encryption (ecryptfs)
+            Install
+            <code> # aptitude install ecryptfs-utils  
+            </code>
+            Start daemon
+            <code> # modprobe ecryptfs
+            </code>
+            Setup Private (note, not root), choose password same as user login to mount automatically at login, in second option (key) let ecryptfs make one for you. 
+            <code> ecryptfs-setup-private
+            </code>
+            Supposedly its a good idea to print out the generated key and store it somewhere safe
+            <code> ecryptfs-unwrap-passphrase ~/.ecryptfs/wrapped-passphrase 
+            </code>
+
+            Now when you login, ecryptfs will mount ~/.private to ~/Private, anything stored in ~/Private will be encrypted. 
+
+            A good tutorial for doing this (or fancier stuff) can be found at <a href="https://wiki.archlinux.org/index.php/ECryptfs">https://wiki.archlinux.org/index.php/ECryptfs</a>.
+
+        <li> Check DNS Records
+            <code> dig example.com mx +short </code>
+
+        <li> Auto mount Hard drive
+            <p> First get UUID of the drive</p>
+            <code>  sudo blkid </code>
+            <p> Then setup fstab</p>
+            <code>  vi /etc/fstab </code>
+
+
+        <li> Fixing Ubuntu After Upgrade from 14.01 to 16.01
+            <ul>
+            <li> Upon booting recieved error: 
+              <code> VFS: Unable to mount root fs on unknown-block(0,0)</code>
+              To fix, used grub to boot into an older kernel (this worked), then did an apt-get update/upgrade. After looking around in grub command line, I noticed that /boot/initrd-* didn't exist and suspected that this could be the problem. To fix this, I did:
+              <code>
+                  #to find my latest kernel name
+                  dpkg --list | grep linux-image
+                  # install latest kernel image
+                  sudo update-initramfs -u -k 4.4.0-22-generic
+                  #update grub
+                  sudo update-grub
+              </code>
+              After rebooting, things worked with the new kernel
+
+            <li> Upon booting, left me at the command line, and issuing "startx" gave errors. I tried "tasksel" to install the desktop, and...things still worked. I tried apt-get upgrade but got a conflict I couldnt resolve. "dpkg --configure -a" also failed due to too many errors. Not sure how to proceed...
+
+            </ul>
+                
+        <li> Revert to previous packages
+            <p> I tend to run debian testing and occasionally a new package will break my system or a progam I use frequently. In these cases it's nice to have a way to 'restore' the previous state of the machine. Luckily, there's a tool to do this: snapshot.debian.org. </p>
+            <p> If you only want to revert a single package, you can search that package and download the .deb file that you want and manually "dpkg -i" it. Otherwise you can update your mirrors as follows: </p>
+
+            <ul> 
+            <li> First, make a new file: /etc/apt/sources.list.d/snapshot-debian.list and populate it with the following contents
+            
+                <code>  deb     http://snapshot.debian.org/archive/debian/20160801/ stretch main
+                        deb-src http://snapshot.debian.org/archive/debian/20160801/ stretch main
+                        deb     http://snapshot.debian.org/archive/debian-security/20160801/ stretch/updates main
+                        deb-src http://snapshot.debian.org/archive/debian-security/20160801/ stretch/updates main
+                </code>
+                The last number is the date of the snapshot you would like to revert to in YYYYMMDD format.
+            <li> Then comment out the usual mirrors in /etc/apt/sources.list
+            <li> Issue aptitude update with the following commands to allow the use of an outdated mirror
+              <code> aptitude -o Acquire::Check-Valid-Until=false update </code>
+            <li> aptitude remove and then aptitude install the packages that you want to revert, or perform aptitude update to revert entire system
+            <li> Toggle between the mirrors accordingly to access the packages you want to be accessing
+
+            </ul>
+
+        <li> Change system time
+            <code> timedatectl list-timezones
+                   timedatectl set-timezone America/Chicago
+            </code>
+
+
+    </ul>
+
+    <h2> Mail (from command line) </h2>
+    <ul>
+       <li> Standard syntax 
+       <code> mail -A myattachment.png emailrecipient@domain.com -s "subject" <<< "email content"
+       </code>
+     </ul>
+
+    <h2> Pdf Manipulation (pdftk) </h2>
+    <ul>
+       <li> Combine many pdf in to single pdf
+       <code> pdftk file1.pdf file2.pdf file3.pdf cat output newfile.pdf
+       </code>
+     </ul>
+
+    <h2> Miscelaneous </h2>
+    <ul>
+       <li> Removing Null Characters (^@) from file
+           <p>Occasionally, these fellows find their way into a text file and are difficult to remove with sed. This does the trick.</p>
+           <code>tr < file-with-nulls -d '\000' > file-without-nulls
+           </code>
+       <li> Messaging other users on a server (using "write")
+           <code> write &ltusername&gt </code>
+           Hit enter
+           <code> INSERT MESSAGE HERE </code>
+           Hit ctl-C. The message should pop up on thier terminal.
+           
+    </ul>
+
+
+
+    
+      <h2> MPI </h2>
+    <ul>
+       <li> Debugging with gdb
+       <code> mpirun -np 4 xterm -e gdb code.exe </code>
+       <li> Precise control of processors (e.g. writing a Job Wrapper)
+         <code> mpirun --app my_appfile </code>
+         Inside of my_appfile
+         <code> -np 2 ./a.out
+                -np 2 ./b.out
+         </code>
+     </ul>
+
+
+    <h2> Paraview </h2>
+    
+    <ul>
+        <li> Structured Grid
+        <p> I had one heck of a time getting my file format to be compatable. Some notes: 
+        <\p>
+            <ul>
+                <li> When defining the grid, vary x values first, then y, then z (i.e. line one is 1.0 1.0 1.0, line two is 2.0 1.0 1.0, etc)
+                <li> Use spaces, not tabs. For some reason, with tabs in the first few lines, the file wouldn't read properly. Changing these to spaces fixed things...sigh.
+                <li> Make sure there aren't any impropper numbers in the file (infinity, nan, very big numbers, etc). This can break the parsing of the file.
+            </ul>
+
+    </ul>
+
+ 
+    <h2> Python </h2>
+     
+    <ul> 
+        <li> Numpy Usage
+            <code> import numpy as np
+                   a=np.array([[1,2,3,4],[10,9,8,7]]).T
+                   b=np.array([[1,2,3,4],[20,19,18,17]]).T
+                   #subtract 2nd column of a from b
+                   c=np.array([a[:,0],b[:,1]-a[:,1]])
+            </code>
+        <li> Minimum and Index
+          <code> val, idx = min((val, idx) for (idx, val) in enumerate(my_list)) 
+          </code>
+        <li> Replace in array (works for 2d array too)
+          <code> a[a==0] = 0.01 </code>
+        <li> Find values in array greater than some value
+          <code>  arr = np.array([1, 5, 6, 7, 7, 8, 8, 0, 2, 7])
+                  np.where(arr &gt 0)
+                  arr[np.where(arr &gt 0)]
+          </code>
+        <li> File Parsing
+            <code>
+            #lines in file
+            nlines = sum(1 for line in open("file.txt"))
+            </code>
+        <li> Argparse
+        
+        <li> In-line for loop (what is this called?)
+            <code> [x for x in range(10)] 
+                   y = [int(x) for x in np.linspace(0,100,20)] 
+            </code>
+
+
+    </ul>
+   
+ 
+    <h2> QMGA (visualize elipsoids) </h2>
+
+    <ul> 
+        <li> Install
+            Download <a href="http://sourceforge.net/projects/qmga/?source=typ_redirect">here</a>. Need to install qt3 which is no longer supported on ubuntu. To fix this, add the precise (Ubuntu 12.04) repositories. Add the following two lines to /etc/apt/sources.list 
+            <code> deb http://archive.ubuntu.com/ubuntu precise main restricted
+                   deb-src http://archive.ubuntu.com/ubuntu precise main restricted
+            </code>
+            Then issue:
+            <code> sudo aptitude install qt3-dev-tools
+                   sudo aptitude install freeglut3-dev
+            </code>
+            Then add to your make file:
+            <code> -I/usr/include/qt3
+                   -L/usr/share/qt3/lib
+            </code>
+
+    </ul>
+
+    <section class="content container">
+    <h1> Raspberry Pi </h1>
+    
+    <p>
+    Page to organize little things I've learned on the Raspberry Pi
+    </p>
+     
+    <h2> Web Server </h2>
+    <ul> 
+        <li> Basic Installations
+          <code> aptitude install nginx </code>
+          <code> aptitude install php5 </code>
+          <code> aptitude install fail2ban </code>
+        <li> Php with nginx
+            <code> sudo service nginx start </code>
+            https://www.digitalocean.com/community/tutorials/how-to-install-linux-nginx-mysql-php-lemp-stack-on-debian-7
+            http://askubuntu.com/questions/134666/what-is-the-easiest-way-to-enable-php-on-nginx
+        <li> Setting User Permissions to modify /var/www
+            <code> sudo adduser <username> www-data
+            sudo chgrp -R www-data /usr/share/nginx/html
+            sudo chmod -R g+rw /usr/share/nginx/html
+            sudo chmod g+s /usr/share/nginx/html
+            </code>
+        <li> Get Groups that user belongs to.
+            <p> Look at </p>
+            <code> /etc/group
+            </code>
+
+
+    </ul>
+    <h2>Head-less internet </h2>
+    <ul>
+        <li> Configure Wifi with static IP
+            <p>http://weworkweplay.com/play/automatically-connect-a-raspberry-pi-to-a-wifi-network/
+             
+            Basically, configure /etc/network/interfaces to autoconnect to wifi and to use a static ip, the link above worked for me.
+    </ul>
+        
+
+    <h2> Maintenence </h2>
+    <ul>
+       <li> Measure Temperature
+            <code> /opt/vc/bin/vcgencmd measure_temp
+            </code>
+       <li> Check if process is running
+            <code> ps aux | grep MYPROCESSNAME </code>
+    
+    </ul>
+    </section>
+
+    <h2> Screen </h2>
+    <p> Screen is an incredibly useful tool for working at the command line. Before I used to have many terminal windows (and tabs) open simultaneously, each for a different task I was performing. Thanks to screen, I only have one that keeps track of all of my work. As an added bonus, when I'm accessing my machine from home, I just reattach 
+
+    <ul>
+       <li> Basics
+       <code> screen # open screen
+              screen --list # list open screens
+              screen -r [screen name] # reattach a detached screen
+              screen -dr [screen name] # remotely detach an atatched screen and reattach to it
+       </code>
+       <li> Usage
+        Type ctrl-a [command]. My most frequently used commands are:
+                 <code>A - rename screen name 
+                       " - view all screens 
+                       n - next screen      
+                       p - previous screen 
+                       c - new screen 
+                       ctrl-a - switch to previous screen
+                       S - split current region horizontally
+                       | - split current region verticaly
+                       tab - shift focus to next region (used with 'S')
+                       X - delete current region
+                       Q - delete all regions but current one
+                 </code> 
+        <li> Cut and Paste between different screens
+            <code>
+                ctrl-a [ # start copy mode
+                [space]  # sets first mark
+                [j,k,h,l or other vi-like navigation] # highlight text
+                [space] # set second mark, text between 1st and 2nd mark is coppied
+                # navigate to desired paste location
+                ctrl-a ] # paste
+            </code>
+       <li> Screen within a Screen 
+            <p> The hotkey to access the outer screen is <code>ctrl-a [outer screen command]</code>, to access a screen within a screen type <code>ctrl-a a [inner screen command]</code>. The [commands] are found in the screen documentation.</p>
+
+    </ul>
+
+
+  <h2> Sed </h2>
+    <ul>
+        <li> Sed Tutorial
+        <p> If you plan on working at the command line for any period of time, invest an afternoon and go through <a href="http://www.grymoire.com/Unix/Sed.html">this sed tutorial by Bruce Barnett</a>. You'll be glad you did and will easily recoop all the time you spent learning sed by the more powerful scripts you'll be able to write. </p>
+
+        <li> Sed with Bash substitutions
+        <p> It can be difficult to correctly escape characters and manage quotes for sed commands with bash variables. Just storing the sed command as a string can avoid many headaches. </p>
+        <code> cmd="sed 's/OLD/$new/g' <oldfile >newfile"
+               echo $cmd
+               eval $cmd
+        </code>
+      <li> <strong> Add something on \1 replacements </strong>
+    </ul>
+
+
+ 
+    <h2> Tcl </h2>
+        <p> I mostly use Tcl to script for vmd, my understanding of the language is rather basic but functional. Since I code in it so sparingly, the commands here are mostly the basic syntax of the language to refresh my memory and get me off the ground relatively quickly.</p>
+
+    <ul>
+        <li> Basics
+            <code> #set variable
+                   set i 5
+                   # print variable
+                   puts $i
+            </code>
+        <li> Lists
+            <code> #set list (note l (el) looks like 1 (one))
+                   set l {1 2 3}
+                   # append to list
+                   lappend l 4 5 6
+                   # get 0th value from list
+                   lindex $l 0
+                   lindex $l 1
+                   # length of list
+                   llength $l
+                   # save length of list in value (note that [...] brackets are like `...` in bash)
+                   set mylength [ llength $l ]
+            </code>
+         <li> if/else
+            <code> if { $i == 5} {
+                      puts stdout "i is 5"
+                   } elseif { $i == 10} {
+                      puts stdout "i is 10"
+                   } elseif { $i &gt 5 &amp&amp $i &lt 10} {
+                      puts stdout "i between 5 and 10"
+                   }
+                   } elseif { [ expr ! ($i &gt 5 &amp&amp $i &lt 7)] } {
+                      puts stdout "i not between 5 and 7"
+                   } else {
+                      puts stdout "i is somethin else"
+                   }
+            </code>
+         <li> Loops
+            <code> #for loop (note spaces between {})
+                   for {set i 0} {$i &lt [ llength $l ]} {incr i}{
+                        puts [lindex $l $i]
+                   }
+                   #while loop
+                   set i 0
+                   while { $i &lt [ llength $l]} {
+                        puts [lindex $l $i]
+                        incr i 
+                   }
+            </code>
+         <li> Math
+            <code> #do math
+                   puts [expr 5+5*30]
+            </code>
+         <li> Arrays
+            <code> #arrays
+                   array set x {}
+                   set x(0) 5
+                   set x(5) 10
+                   puts $x(0)
+            </code>
+          <li> File i/o
+            <code> array set x {} 
+            set count 0
+            while { [gets $infile line ] &gt= 0 } { 
+              set x($count) $line
+              #set count [ expr {$count + 1} ]
+              incr count
+            }     
+            </code>
+    </ul>
+
+
+    <h2> Thinkpad Setup </h2>
+    <ul> 
+
+        <li> Setup trackpoint 
+            <p>Install "xinput" and issue the commands </p>
+            <code> xinput set-prop "TPPS/2 IBM TrackPoint" "Evdev Wheel Emulation" 1
+                   xinput set-prop "TPPS/2 IBM TrackPoint" "Evdev Wheel Emulation Button" 2
+                   xinput set-prop "TPPS/2 IBM TrackPoint" "Evdev Wheel Emulation Timeout" 200 
+                   # command to enable horizontal scrolling
+                   xinput set-prop "TPPS/2 IBM TrackPoint" "Evdev Wheel Emulation Axes" 6 7 4 5
+            </code>
+            <p> Put in ~/.xsessionrc to make the changes permanent. 
+    
+    </ul>
+
+
+<h2> Vim </h2>
+<ul>
+   <li> Vim Tips
+        <p> Go to <a href="http://vim.wikia.com/wiki/Best_Vim_Tips">Vim Tips</a>, regularly. I always learn something new.
+   <li> Find and replace
+         <code> # find and replace in entire document
+                :%s/tofind/toreplace/g 
+                # find and replace in lines matching pattern
+                :g/PATTERN/s/tofind/toreplace/g
+        </code>
+   <li> Yank lines containing pattern
+        <code> :g/PATTERN/yank A #yank into register
+                
+        </code>
+</ul>
+
+
+ <h2> VMD </h2>
+    <ul>
+        <li> Taychon Rendering Command 
+        <code> tachyon  -aasamples 12 file.dat -res 669 834 -format TARGA -o file.tga
+               /usr/local/lib/vmd/tachyon_LINUXAMD64 -res 800 500 -mediumshade $filename -o $filename.tga
+        </code>
+        <li> Draw Simulation Box
+            <code>package require pbctools
+                  pbc box -center origin -width 5 -color black
+            </code>
+    </ul>
+
+<!-- START footer.txt --> 
+  <footer class="primary-footer container group">
+    <small>&copy; Joshua Lequieu</small>
+    <nav class="nav">
+    <ul>
+      <li><a href="index.html">Home</a></li><!--
+      --><li><a href="about.html">About</a></li><!--
+      --><li><a href="research.html">Research</a></li><!--
+      --><li><a href="cv.html">CV</a></li><!--
+      --><li><a href="codesnips.html">Codesnips</a></li><!--
+      --><li><a href="contact.html">Contact</a></li>
+    </ul>
+    </nav>
+
+  </footer>
+
+ <!-- END footer.txt --> 

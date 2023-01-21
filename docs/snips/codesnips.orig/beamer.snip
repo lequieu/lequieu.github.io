@@ -1,0 +1,38 @@
+    <ul>
+       <li> Remove navigation bar from beamer and add slide count
+            <code>%gets rid of bottom navigation bars
+                  \setbeamertemplate{footline}[slide number]{}
+                  %gets rid of navigation symbols
+                  \setbeamertemplate{navigation symbols}{}
+            </code>
+       <li> No Slide number on Title Slide
+         <p> Just turn numbers off then on...a hack, I know </p>
+         <code>\setbeamertemplate{footline}{}
+               \begin{frame}[noframenumbering]
+               \titlepage
+               \end{frame}
+               \setbeamertemplate{footline}[slide number]{}
+         </code>
+       <li> Text sequentially appear within frame
+         <code> \onslide<1-> Appears on slide 1 onward
+                \onslide<2-> Appears on slide 2 onward
+                \onslide<1-> Appears on slide 1 onward
+         </code>
+       <li> Playing movies
+         <p> Use animate package to embed into pdf. To play the moveies you'll need acrobat reader (which is no longer supported for linux). To get this to work I've found it best to install playonlinux and then install acrobat reader from playonlinux's servers. This allowed me to play movies in my pdfs. So far performance is fast, and seems to work well. </p>
+
+         To get this to work on a clean install, you need to add the i386 architecture
+
+
+         dpkg --add-architecture i386
+         aptitude update
+         aptitude install playonlinux
+         aptitude install wine32
+
+         Link to get old Acrobat versions:
+         ftp://ftp.adobe.com/pub/adobe/reader/win/AcrobatDC/1501020056/
+         Link Explaining Multi Arg
+         https://wiki.debian.org/Multiarch/HOWTO
+
+    </ul>
+    

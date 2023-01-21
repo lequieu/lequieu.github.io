@@ -1,0 +1,16 @@
+    <ul>
+        <li> Keyword Substitution
+          <ul>
+            <li> Add $LastChangedDate$ and $Revision$ to the file of interest, sample.txt (sample.txt is under version control)
+
+            <li> Issue command
+<pre> svn propset svn:keywords "Date Author" sample.txt </pre>
+<li> Commit sample.txt
+<pre> svn commit sample.txt -m "Added Revision and ChangeDate keywords" </pre>
+<li> Reopen sample.txt, the $Revision$ tag should have been updated to include the revision number. Cool!
+
+</ul>
+Reference: <a href="http://svnbook.red-bean.com/en/1.7/svn.advanced.props.special.keywords.html">http://svnbook.red-bean.com/en/1.7/svn.advanced.props.special.keywords.html</a>
+</ul>
+
+

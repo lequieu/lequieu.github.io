@@ -1,0 +1,51 @@
+    <ul>
+        <li> Basics
+<pre> import matplotlib.pyplot as plt
+plt.plot(x, y,label='curve')
+plt.title("Plot title")
+plt.axis([0,100,-1,7])
+plt.legend()
+plt.savefig('fig.png')
+plt.show()
+</pre>
+        <li> Color Maps
+            <pre>plt.pcolor(x,y,energy,cmap="RdBu")</pre>
+            <p> Different palletes can be found <a href="http://matplotlib.org/examples/color/colormaps_reference.html">here</a>. Note that all colormaps can be reversed by appending "_r" to the end. </p>
+
+        <li> 4D plot
+<pre>
+#!/usr/bin/env python
+
+from mpl_toolkits.mplot3d import Axes3D
+import matplotlib.pyplot as plt
+from matplotlib import cm,colors
+import numpy as np
+import pdb
+
+N = 50
+theta = np.linspace(0,2*np.pi,N, endpoint=False)
+phi = np.linspace(0,np.pi,N,endpoint=False)
+theta_mesh, phi_mesh = np.meshgrid(theta,phi)
+R=1
+x_mesh = R*np.sin(theta_mesh)*np.sin(phi_mesh)
+y_mesh = R*np.cos(theta_mesh)*np.sin(phi_mesh)
+z_mesh = R*np.cos(phi_mesh)
+
+energy = z_mesh
+
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+
+norm=colors.Normalize(vmin = np.min(energy), vmax = np.max(energy), clip = False)
+
+surf = ax.plot_surface(x_mesh, y_mesh, z_mesh, facecolors=cm.RdBu(norm(x_mesh)))
+
+plt.savefig('fig.png')
+</pre>
+
+            
+            <li> Nice Explanation of the objects
+                <a href="https://matplotlib.org/users/artists.html#artist-tutorial"> Artists tutorial</a>
+    </ul>
+
+

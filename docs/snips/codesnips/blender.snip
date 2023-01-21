@@ -1,0 +1,51 @@
+    <p> Blender is an amazing piece of software that I've wanted to learn for a long time. I'm enticed by the many beautiful videos on youtube, I think: "I want my simulation visualizations to look like that!".
+    <ul>
+        <li> Basics of Materials
+            <p> A list of things I've learned, in no particular order </p>
+            <ul>
+              <li> Don't forget to switch to the cycles renderer
+              <li> Use a mix shader to mix diffuse BSDF with glossy BSDF to get a realistic looking material.
+            </ul>
+
+        <li> Loading Molecular Trajectories
+        <p> To visualize molecular trajectories you first initialize the system, and then reposition each object in the scene acccording to the trajectory, setting key frames along the way. A simple script to do this (still work in progress) is <a href="assets/codesnips/simple_particle_motion_multi.py">here</a>.  A fellow named Scott Hartley also put together a useful <a href="http://blog.hartleygroup.org/2015/02/27/a-quick-intro-to-importing-molecular-geometries-into-blender-through-the-blmol-script/">tool</a> for visualizing molecules, at some point I'll combine this all to generate beautiful trajectories. </p>
+        <p>Note that you'll need to load numpy into Blender, this worked for me</p>
+<pre>
+sudo apt-get install python3.4
+sudo apt-get install python3-pip
+sudo pip3 install numpy
+sudo cp -r /usr/local/lib/python3.4/dist-packages/num* /usr/share/blender/scripts/modules/
+</pre>
+        <li> Show All Operators
+          <p> Include at command line "--debug-wm" during startup. Or issue command from blender python terminal.</p> 
+<pre> bpy.app.debug_wm = True</pre>
+
+<li> Import Mesh
+<pre> bpy.ops.import_scene.obj(filepath="file.obj")
+bpy.ops.import_mesh.ply(filepath="file.ply")
+</pre>
+        <li> Active Object
+<pre> ob = bpy.context.scene.objects.active </pre>
+<li> Setting up environment
+<p> It works best to do text editing in vim, load the file of interest into the beamer text editor, and refresh and run the script using beamer gui.
+
+<li> Camera Tricks
+<ul>
+<li> Camera Tracking
+<p> Create an empty axis, select it then the camera (or perhaps reverse) then hit ctl-T, now camera will always point at empty. can also do this by clicking the constraints tab (looks like chain links) in the "Properties" Window.</p>
+<li> Lock Camera to View
+<p> In "3D View" Window, hit "N" to bring up side window and then check box for "Lock Camera to View"</p>
+<pre> bpy.context.space_data.lock_camera = True </pre>
+<li> Set camera to current user view
+<p> Press ctl-alt-numpad0 or from "3d view" view -- align view -- align active camera </p>
+</ul>
+<li> Importing from VMD
+<ol>
+<li> Generate a vizualization that you like in VMD
+<li> Go to "Render" and choose render type "STL"
+<li> Then import this STL file into Blender, and choose the materials as desired
+</ol>
+<p> NOTE: if you want different objects to have different properties, you'll need to export different STL files, one for each "material" in the scene </p>
+</ul>
+
+
